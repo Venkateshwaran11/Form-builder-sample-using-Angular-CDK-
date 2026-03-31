@@ -1,0 +1,8 @@
+<p>child works! - {{message}}</p>
+<div>PreviousValue: {{changes['message']?.previousValue}}</div>
+<div>CurrentValue: {{changes['message']?.currentValue}}</div>
+
+
+<div>User Name: {{user.name}}</div>
+<div>User Count: {{user.count}}</div>
+<button (click)="updateMessage()">updateMessage</button>

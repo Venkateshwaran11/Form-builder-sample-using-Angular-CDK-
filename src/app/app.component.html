@@ -1,0 +1,51 @@
+<div class="app-container">
+  <div class="header" *ngIf="mode === 'edit'">
+    <h1>Interactive Form Builder</h1>
+    <p>Drag tools from the sidebar, edit their properties, and generate JSON.</p>
+  </div>
+  
+  <div class="builder-layout" [class.view-layout]="mode === 'view'" cdkDropListGroup>
+    
+    <!-- Sidebar: Field Tools -->
+    <div class="builder-sidebar" *ngIf="mode === 'edit'">
+      <div class="sidebar-header">
+        <h3>Tools Elements</h3>
+      </div>
+      <div class="sidebar-content">
+        <div cdkDropList [cdkDropListData]="availableTools" class="tool-list">
+          <div class="tool-card" *ngFor="let tool of availableTools" cdkDrag [cdkDragData]="tool">
+            <div class="tool-drag-preview" *cdkDragPreview>
+              <mat-icon style="font-size: 20px; width: 20px; height: 20px;">{{tool.icon}}</mat-icon>
+              <span>{{tool.label}}</span>
+            </div>
+            <span class="{{tool.class}}"><mat-icon >{{tool.icon}}</mat-icon></span>
+            <span class="label">{{tool.label}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas: Dynamic Form Rendering -->
+    <div class="builder-canvas">
+      <app-dynamic-form
+        [config]="formConfig"
+        [mode]="mode"
+        [(formName)]="formName"
+        [(formDisplayName)]="formDisplayName"
+        (submitForm)="onFormSubmit($event)"
+        (toggleMode)="toggleMode()"
+        (configChange)="onConfigChange($event)">
+      </app-dynamic-form>
+
+      <!-- Render the submitted form data natively for the user -->
+      <div class="submission-result" *ngIf="submittedData">
+        <h3>✅ Form Successfully Submitted!</h3>
+        <p style="margin-bottom: 15px; color: #94a3b8; font-size: 0.9rem; margin-top:0;">Here is the resulting JSON payload extracted natively from your dynamically generated form.</p>
+        <pre>{{ submittedData | json }}</pre>
+        <button class="toggle-btn" style="background:#ef4444; margin-top: 15px;" (click)="submittedData = null">Clear Results</button>
+      </div>
+    </div>
+    
+
+  </div>
+</div>

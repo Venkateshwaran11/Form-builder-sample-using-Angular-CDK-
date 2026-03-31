@@ -1,0 +1,16 @@
+<div class="drag-drop-container target-container dashboard" style="flex: 1; margin: 0; background: #e0f2fe; display: flex; flex-direction: column;">
+  <h2 style="font-size: 1.5rem; margin-top: 0;">Main Dashboard View</h2>
+  <div cdkDropList [cdkDropListData]="activeWidgets" class="example-list dashboard-list" (cdkDropListDropped)="drop($event)" style="flex: 1; background: transparent; border: 2px dashed #7dd3fc; padding: 15px;">
+    
+    <!-- Widget Style Blocks -->
+    <div class="example-box dashboard-widget" *ngFor="let widget of activeWidgets" cdkDrag>
+      <div class="widget-header" cdkDragHandle>
+        <h3 style="margin: 0; font-size: 1.1rem; color: #0369a1;">⠿ {{widget}}</h3>
+      </div>
+      <div class="widget-content">
+        <p style="margin: 0; font-size: 0.85rem; color: #475569;">Drag by the top handle to rearrange. Use the bottom right corner to resize.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
