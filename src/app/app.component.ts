@@ -5,20 +5,51 @@ import { DynamicFormComponent } from './dynamic-form/dynamic-form.component';
 import { FieldConfig } from './dynamic-form/models/field-config.interface';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { inject, NgZone } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { environment } from '../environments/environment';
+import { ConfirmDialogComponent } from './shared/dialogs/confirm-dialog/confirm-dialog.component';
+import { AlertDialogComponent } from './shared/dialogs/alert-dialog/alert-dialog.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, DynamicFormComponent, DragDropModule, MatIconModule, FormsModule,MatSnackBarModule],
+  imports: [CommonModule, DynamicFormComponent, DragDropModule, MatIconModule, FormsModule, MatSnackBarModule, MatDialogModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent  implements OnInit{
-  constructor(private snackBar: MatSnackBar, private ngZone: NgZone) {}
+  constructor(private snackBar: MatSnackBar, private ngZone: NgZone, private dialog: MatDialog) {}
+
+  /** Open a non-blocking alert modal */
+  private openAlert(title: string, message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') {
+    this.dialog.open(AlertDialogComponent, {
+      data: { title, message, type },
+      width: '420px',
+      disableClose: false,
+      panelClass: 'mat-dialog-clean'
+    });
+  }
+
+  /** Open a confirm modal and return true/false */
+  private async openConfirm(
+    title: string,
+    message: string,
+    type: 'warning' | 'danger' | 'info' = 'warning',
+    confirmText = 'Confirm',
+    cancelText = 'Cancel'
+  ): Promise<boolean> {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      data: { title, message, type, confirmText, cancelText },
+      width: '440px',
+      disableClose: true,
+      panelClass: 'mat-dialog-clean'
+    });
+    return (await firstValueFrom(ref.afterClosed())) === true;
+  }
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
@@ -239,27 +270,37 @@ export class AppComponent  implements OnInit{
   exportConfig() {
     const configJson = JSON.stringify(this.formConfig, null, 2);
     console.log('Exported Form Configuration:', configJson);
-    alert('Form configuration exported to console.');
+    this.openAlert('Exported!', 'Form configuration has been exported to the browser console.', 'success');
   }
 
-  clearConfig() {
-    if (confirm('Are you sure you want to clear the entire form? This action cannot be undone.')) {
+  async clearConfig() {
+    const ok = await this.openConfirm(
+      'Clear Form',
+      'Are you sure you want to clear the entire form? This action cannot be undone.',
+      'danger', 'Yes, Clear', 'Cancel'
+    );
+    if (ok) {
       this.formConfig = [];
       this.isDirty = true;
     }
   }
 
-  createNewForm() {
-    if (this.isDirty && !confirm('You have unsaved changes. Are you sure you want to start a new form?')) {
-      return;
+  async createNewForm() {
+    if (this.isDirty) {
+      const ok = await this.openConfirm(
+        'Unsaved Changes',
+        'You have unsaved changes. Are you sure you want to start a new form?',
+        'warning', 'Yes, Start New', 'Cancel'
+      );
+      if (!ok) return;
     }
     this.formConfig = [];
     this.formName = 'untitled_form';
     this.formDisplayName = 'Untitled Form';
     this.isDirty = false;
     this.submittedData = null;
-    this.id='';
-    alert('Started a new fresh form!');
+    this.id = '';
+    this.openAlert('New Form Ready', 'A fresh new form has been started!', 'success');
   }
   id='';
   saveConfig() {
@@ -293,9 +334,14 @@ export class AppComponent  implements OnInit{
     });
   }
 
-  loadForm(form: any) {
-    if (this.isDirty && !confirm('You have unsaved changes. Are you sure you want to load another form?')) {
-      return;
+  async loadForm(form: any) {
+    if (this.isDirty) {
+      const ok = await this.openConfirm(
+        'Unsaved Changes',
+        'You have unsaved changes. Are you sure you want to load another form?',
+        'warning', 'Yes, Load Form', 'Cancel'
+      );
+      if (!ok) return;
     }
     this.formConfig = [...form.config];
     this.formName = form.name;
@@ -306,13 +352,18 @@ export class AppComponent  implements OnInit{
     this.id=form._id;
   }
 
-  deleteForm(event: Event, formName: string) {
+  async deleteForm(event: Event, formName: string) {
     event.stopPropagation();
-    if (confirm(`Are you sure you want to delete form "${formName}"?`)) {
+    const ok = await this.openConfirm(
+      'Delete Form',
+      `Are you sure you want to delete form "${formName}"? This cannot be undone.`,
+      'danger', 'Yes, Delete', 'Cancel'
+    );
+    if (ok) {
       this.http.delete(`${this.apiUrl}/forms/${formName}`).subscribe({
         next: () => {
           this.loadSavedForms();
-          alert('Form deleted from backend.');
+          this.openAlert('Deleted', `Form "${formName}" has been deleted.`, 'success');
         },
         error: (err) => console.error('Error deleting form:', err)
       });
@@ -358,12 +409,12 @@ activeTab = this.tabs[0].id;
     this.http.post(`${this.apiUrl}/responses`, finalData).subscribe({
       next: (res) => {
         console.log('Submission successful:', res);
-        this.submittedData = value; // Keep for UI display
-        alert('Form submitted and saved to database!');
+        this.submittedData = value;
+        this.openAlert('Submitted!', 'Your form response has been saved to the database.', 'success');
       },
       error: (err) => {
         console.error('Submission error:', err);
-        alert('Failed to submit form to backend.');
+        this.openAlert('Submission Failed', 'Could not submit the form to the backend. Please try again.', 'error');
       }
     });
   }

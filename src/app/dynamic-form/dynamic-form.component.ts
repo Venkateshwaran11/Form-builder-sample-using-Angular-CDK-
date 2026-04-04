@@ -68,7 +68,10 @@ import { MatIconModule } from '@angular/material/icon';
             <span class="handle-icon">⠿</span>
             <span class="field-name">
               <span class="name-text" [title]="field.label">{{ field.label }}</span>
-              <small class="key-display" [title]="field.name">(Key: {{field.name}})</small>
+              <span class="field-badges">
+                <small class="key-display" [title]="field.name">(Key: {{field.name}})</small>
+                <small class="type-badge">{{ getTypeLabel(field.type) }}</small>
+              </span>
             </span>
             <button type="button" class="btn-icon edit-btn" (click)="toggleEdit(i)" title="Edit Properties"><mat-icon>edit </mat-icon></button>
             <button type="button" class="btn-icon remove-btn" (click)="removeField(i)" title="Remove Field"><mat-icon>delete</mat-icon></button>
@@ -243,13 +246,15 @@ import { MatIconModule } from '@angular/material/icon';
     .field-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0 !important; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: flex 0.3s ease, box-shadow 0.2s; box-sizing: border-box; }
     .field-box:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     
-    .drag-handle { background: #f1f5f9; padding: 8px 10px; display: flex; align-items: center; cursor: grab; border-bottom: 1px solid #e2e8f0; overflow: hidden; gap: 4px; }
+    .drag-handle { background: #f1f5f9; padding: 8px 10px; display: flex; align-items: flex-start; cursor: grab; border-bottom: 1px solid #e2e8f0; overflow: hidden; gap: 4px; }
     .drag-handle:active { cursor: grabbing; }
-    .handle-icon { color: #94a3b8; font-size: 1.2rem; cursor: grab; flex-shrink: 0; }
+    .handle-icon { color: #94a3b8; font-size: 1.2rem; cursor: grab; flex-shrink: 0; margin-top: 2px; }
     
-    .field-name { flex: 1; font-size: 0.95rem; color: #334155; font-weight: 600; display: flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap; }
-    .name-text { overflow: hidden; text-overflow: ellipsis; }
-    .key-display { color: #0ea5e9; font-family: monospace; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .field-name { flex: 1; font-size: 0.95rem; color: #334155; font-weight: 600; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; overflow: hidden; min-width: 0; }
+    .name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+    .field-badges { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .key-display { color: #0ea5e9; font-family: monospace; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+    .type-badge { color: #7c3aed; background: #ede9fe; padding: 2px 7px; border-radius: 4px; font-size: 0.70rem; font-weight: 700; flex-shrink: 0; white-space: nowrap; letter-spacing: 0.03em; text-transform: uppercase; }
     
     .btn-icon { background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 4px; border-radius: 4px; transition: background 0.2s; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex-shrink: 0; }
     .edit-btn { color: #3b82f6; margin-right: 5px; }
@@ -472,6 +477,30 @@ export class DynamicFormComponent implements OnInit, OnChanges {
     if (width === '33%') return 'calc(33.333% - 10px)';
     if (width === '25%') return 'calc(25% - 11.25px)';
     return '100%';
+  }
+
+  getTypeLabel(type: string): string {
+    const typeMap: Record<string, string> = {
+      text: 'Text Input',
+      textarea: 'Text Area',
+      email: 'Email',
+      password: 'Password',
+      number: 'Number',
+      decimal: 'Decimal',
+      currency: 'Currency',
+      date: 'Date Picker',
+      dropdown: 'Dropdown',
+      multiselect: 'Multi-Select',
+      radio: 'Radio',
+      checkbox: 'Checkbox',
+      toggle: 'Toggle',
+      file: 'File Upload',
+      rating: 'Rating',
+      slider: 'Slider',
+      signature: 'Signature',
+      richtext: 'Rich Text',
+    };
+    return typeMap[type] ?? type;
   }
 
   removeField(index: number) {
