@@ -16,7 +16,7 @@ app.use(express.json());
 
 // Serve static files in production (only if NOT on Vercel)
 if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
-  const distPath = path.join(__dirname, '../dist/learnangular/browser');
+  const distPath = path.join(__dirname, '../dist/browser');
   app.use(express.static(distPath));
 }
 
@@ -99,7 +99,7 @@ app.get('/api/responses/:formId', async (req, res) => {
 // This catch-all route should be AFTER all API routes
 if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/learnangular/browser', 'index.html'));
+    res.sendFile(path.join(__dirname, '../dist/browser', 'index.html'));
   });
 }
 
