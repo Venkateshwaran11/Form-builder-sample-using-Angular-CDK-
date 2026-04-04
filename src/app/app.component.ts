@@ -285,7 +285,7 @@ export class AppComponent  implements OnInit{
     }
   }
 
-  async createNewForm() {
+  async createNewForm(afterSave: boolean = false) {
     if (this.isDirty) {
       const ok = await this.openConfirm(
         'Unsaved Changes',
@@ -300,7 +300,9 @@ export class AppComponent  implements OnInit{
     this.isDirty = false;
     this.submittedData = null;
     this.id = '';
+    if(!afterSave){
     this.openAlert('New Form Ready', 'A fresh new form has been started!', 'success');
+    }
   }
   id='';
   saveConfig() {
@@ -321,6 +323,8 @@ export class AppComponent  implements OnInit{
           verticalPosition: 'top',
           panelClass: ['snackbar-success']
         });
+        this.createNewForm(true)
+
       },
       error: (err) => {
         console.error('Error saving form:', err);
