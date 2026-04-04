@@ -14,8 +14,8 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/formbu
 app.use(cors());
 app.use(express.json());
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
+// Serve static files in production (only if NOT on Vercel)
+if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   const distPath = path.join(__dirname, '../dist/learnangular/browser');
   app.use(express.static(distPath));
 }
@@ -97,7 +97,7 @@ app.get('/api/responses/:formId', async (req, res) => {
 
 // Single Page Application (SPA) Support for Angular
 // This catch-all route should be AFTER all API routes
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../dist/learnangular/browser', 'index.html'));
   });
