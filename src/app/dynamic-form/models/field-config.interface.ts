@@ -29,4 +29,5 @@ export interface FieldConfig {
   max?: number;
   pattern?: string | RegExp;
   errorMessage?: string;
+  precision?: number;
 }

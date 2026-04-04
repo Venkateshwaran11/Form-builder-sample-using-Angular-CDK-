@@ -22,7 +22,7 @@ import { FieldConfig } from '../models/field-config.interface';
       </select>
 
       <div class="error-msg" *ngIf="group.get(field.name)?.touched && group.get(field.name)?.invalid">
-        <span *ngIf="group.get(field.name)?.errors?.['required']">This field is required.</span>
+        <span *ngIf="group.get(field.name)?.errors?.['required']">{{field.label}} is required.</span>
       </div>
     </div>
   `,

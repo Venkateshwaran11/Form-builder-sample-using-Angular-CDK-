@@ -62,7 +62,7 @@ import { MatIconModule } from '@angular/material/icon';
           </div>
           
           <!-- Inline Property Editor -->
-          <div class="property-editor" *ngIf="editingIndex === i">
+          <div class="property-editor"  *ngIf="editingIndex === i && mode === 'edit'">
             <h4 style="margin-top:0; font-size:1rem; color:#1e293b;">Field Properties</h4>
             
             <div class="editor-row">
@@ -112,14 +112,22 @@ import { MatIconModule } from '@angular/material/icon';
                 </div>  
               </div>
             </div>
+            <div class="editor-row options-editor" *ngIf="field.type === 'decimal'">
+              <label>Decimal Precision:</label>
+              <div class="options-list">
+                <div class="option-row">
+                  <input type="number" [(ngModel)]="field.precision" [ngModelOptions]="{standalone: true}" placeholder="Precision">
+                </div>  
+              </div>
+            </div>
 
-            <div class="editor-actions">
+            <div class="editor-actions" [class.blur]="field.label === '' || field.name === ''">
               <button type="button" class="save-btn" (click)="toggleEdit(null)">Done Editing</button>
             </div>
           </div>
 
           <!-- Actual Rendered Field from Engine -->
-          <div class="field-content" [class.blur]="editingIndex === i">
+          <div class="field-content" [class.blur]="editingIndex === i && mode === 'edit'">
             <app-dynamic-field [field]="field" [group]="form"></app-dynamic-field>
           </div>
         </div>
@@ -200,7 +208,11 @@ import { MatIconModule } from '@angular/material/icon';
     .remove-btn:hover { background: #fee2e2; }
     
     .field-content { padding: 20px; transition: opacity 0.2s; }
-    .blur { opacity: 0.4; pointer-events: none; }
+    .blur { 
+      opacity: 0.4; 
+      pointer-events: none;
+      cursor:not-allowed; 
+    }
     
     /* Property Editor Styles */
     .property-editor { background: #fef9c3; padding: 20px; border-bottom: 1px solid #e2e8f0; }
@@ -343,9 +355,6 @@ export class DynamicFormComponent implements OnInit, OnChanges {
   }
 
   toggleEdit(index: number | null) {
-    localStorage.setItem('dynamicFormConfig', JSON.stringify(this.config));
-    localStorage.setItem('dynamicFormName', this.formName);
-    localStorage.setItem('dynamicFormDisplayName', this.formDisplayName);
     this.editingIndex = index;
   }
 
@@ -468,9 +477,6 @@ export class DynamicFormComponent implements OnInit, OnChanges {
       formDisplayName: this.formDisplayName,
       fields: this.config
     };
-    localStorage.setItem('dynamicFormConfig', JSON.stringify(this.config));
-    localStorage.setItem('dynamicFormName', this.formName);
-    localStorage.setItem('dynamicFormDisplayName', this.formDisplayName); 
     this.jsonString = finalFormJson;
     console.log('Generated Form Configuration JSON schema:', this.jsonString);
     // alert('Generated internal form configuration JSON successfully! Check the browser console.');

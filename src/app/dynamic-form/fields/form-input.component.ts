@@ -27,11 +27,12 @@ import { FieldConfig } from '../models/field-config.interface';
           [formControlName]="field.name"
           [placeholder]="field.placeholder || ''"
           [min]="field.min || null"
-          [max]="field.max || null">
+          [max]="field.max || null"
+          (input)="limitDecimal($event, field.precision)">
       </ng-container>
 
       <div class="error-msg" *ngIf="group.get(field.name)?.touched && group.get(field.name)?.invalid">
-        <span *ngIf="group.get(field.name)?.errors?.['required']">This field is required.</span>
+        <span *ngIf="group.get(field.name)?.errors?.['required']">{{field.label}} is required.</span>
         <span *ngIf="group.get(field.name)?.errors?.['email']">Invalid email format.</span>
         <span *ngIf="group.get(field.name)?.errors?.['pattern']">{{ field.errorMessage || 'Invalid format.' }}</span>
         <span *ngIf="group.get(field.name)?.errors?.['min']">Minimum is {{ field.min }}.</span>
@@ -64,4 +65,16 @@ export class FormInputComponent {
       default: return 'text';
     }
   }
+  limitDecimal(event: any,precision:number|undefined) {
+    if(!precision){
+      return;
+    }
+  let value = event.target.value;
+  if (value.includes('.')) {
+    let [int, dec] = value.split('.');
+    if (dec.length > precision) {
+      event.target.value = int + '.' + dec.substring(0, precision);
+    }
+  }
+}
 }

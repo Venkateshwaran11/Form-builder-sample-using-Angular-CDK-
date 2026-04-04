@@ -25,7 +25,6 @@
               "src/assets"
             ],
             "styles": [
-              "src/custom-theme.scss",
               "src/styles.css"
             ],
             "scripts": []
@@ -40,8 +39,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "8kb"
+                  "maximumWarning": "10kb",
+                  "maximumError": "12kb"
                 }
               ],
               "outputHashing": "all"
@@ -94,6 +93,6 @@
     }
   },
   "cli": {
-    "analytics": "5e88ab3d-6d12-4dfd-8571-5a9239e210f7"
+    "analytics": "8e023b59-7612-4a27-9ea2-9d554ce509ac"
   }
 }
