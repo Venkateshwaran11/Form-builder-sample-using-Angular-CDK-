@@ -3,9 +3,7 @@
   "public": true,
   "framework": "angular",
   "functions": {
-    "server/server.js": {
-      "runtime": "@vercel/node"
-    }
+    "server/server.js": {}
   },
   "rewrites": [
     {
