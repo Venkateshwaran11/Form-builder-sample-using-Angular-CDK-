@@ -1,21 +1,11 @@
 {
   "version": 2,
   "public": true,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist/browser" }
-    },
-    {
-      "src": "server/server.js",
-      "use": "@vercel/node"
-    }
-  ],
+  "framework": "angular",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "server/server.js"
+      "destination": "/api"
     },
     {
       "source": "/(.*)",
