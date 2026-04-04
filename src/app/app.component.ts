@@ -4,27 +4,206 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { DynamicFormComponent } from './dynamic-form/dynamic-form.component';
 import { FieldConfig } from './dynamic-form/models/field-config.interface';
 import { MatIconModule } from '@angular/material/icon';
-
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, NgZone } from '@angular/core';
 import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, DynamicFormComponent, DragDropModule, MatIconModule, FormsModule],
+  imports: [CommonModule, DynamicFormComponent, DragDropModule, MatIconModule, FormsModule,MatSnackBarModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent  implements OnInit{
+  constructor(private snackBar: MatSnackBar, private ngZone: NgZone) {}
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
   ngOnInit(): void {
     this.loadSavedForms();
     this.formConfig = [];
+    this.initFlowise();
   }
+
+  private lastProcessedMessage: string = '';
+  private lastSeenMessageCount: number = 0;
+
+  initFlowise() {
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.innerHTML = `
+      import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
+      Chatbot.init({
+        chatflowid: "9872ddd1-b50a-4abe-b856-b72e4ee98c72",
+        apiHost: "https://cloud.flowiseai.com",
+        theme: {
+          button: { backgroundColor: "#3b82f6", right: 20, bottom: 20, size: "large", iconColor: "white" },
+          chatWindow: {
+            welcomeMessage: "Hello! I'm your Agentic AI Assistant. I can help you build forms. Try saying: 'Add a text field for Full Name'",
+            backgroundColor: "#ffffff",
+            fontSize: 16
+          }
+        },
+        observersConfig: {
+          observeMessages: (messages) => {
+            // Send the full count + last message so we can detect new messages
+            window.dispatchEvent(new CustomEvent('ai-messages-update', {
+              detail: { count: messages.length, messages: messages }
+            }));
+          }
+        }
+      });
+    `;
+    document.body.appendChild(script);
+
+    // Snapshot the count at app load — everything before this is history
+    const historicalCount = parseInt(sessionStorage.getItem('ai_msg_count') || '0', 10);
+    this.lastSeenMessageCount = historicalCount;
+
+    let hasNewUserMessageThisSession = false;
+
+    window.addEventListener('ai-messages-update', (event: any) => {
+      this.ngZone.run(() => {
+        const { count, messages } = event.detail;
+
+        // Auto-reset if Flowise restarted with fewer messages than we remember
+        if (count < historicalCount) {
+          sessionStorage.removeItem('ai_msg_count');
+          hasNewUserMessageThisSession = false;
+          return;
+        }
+
+        // Always persist latest count
+        if (count > this.lastSeenMessageCount) {
+          this.lastSeenMessageCount = count;
+          sessionStorage.setItem('ai_msg_count', count.toString());
+        }
+
+        // All messages after app load = "session messages"
+        const sessionMessages = messages.slice(historicalCount);
+
+        // Check for any new user message in this session
+        if (sessionMessages.some((m: any) => m.type === 'userMessage')) {
+          hasNewUserMessageThisSession = true;
+        }
+
+        // Don't process anything until user has actually typed
+        if (!hasNewUserMessageThisSession) return;
+
+        // Always process the LATEST apiMessage (handles streaming updates)
+        const lastApiMsg = [...sessionMessages].reverse().find((m: any) => m.type === 'apiMessage');
+        if (lastApiMsg) {
+          const rawText = lastApiMsg.message || lastApiMsg.text || lastApiMsg.content || '';
+          if (rawText.trim() && rawText !== this.lastProcessedMessage) {
+            this.lastProcessedMessage = rawText;
+            this.parseAICommand(rawText);
+          }
+        }
+      });
+    });
+  }
+
+
+  parseAICommand(message: string) {
+    console.log("AI Message Received:", message);
+    
+    // 1. Try to see if the message contains a JSON array (Advanced Bulk Generation)
+    const jsonMatch = message.match(/\[\s*\{.*\}\s*\]/s);
+    if (jsonMatch) {
+      try {
+        const fields = JSON.parse(jsonMatch[0]);
+        if (Array.isArray(fields)) {
+          console.log("JSON Array detected! Bulk adding fields...");
+
+          // Try to extract a form title from the text BEFORE the JSON block
+          const textBefore = message.substring(0, message.indexOf(jsonMatch[0])).trim();
+          // Look for lines like "Form Title: ..." or "Here is a ... form for ..." or just take the last sentence
+          const titleMatch = textBefore.match(/(?:form[:\s]+|for\s+(?:a|an)\s+|titled?\s*[:\-]?\s*)[""']?([A-Za-z0-9 &\-\/]+)[""']?/i)
+            || textBefore.match(/^(?:Here(?:'s| is)(?: a| an)?|Creating(?: a| an)?|Generating(?: a| an)?) ([^\n.!?]+)/im);
+
+          if (titleMatch) {
+            const extractedTitle = titleMatch[titleMatch.length - 1].trim();
+            if (extractedTitle.length > 3) {
+              this.formDisplayName = extractedTitle;
+              this.formName = extractedTitle.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+            }
+          }
+
+          fields.forEach(field => {
+            if (field.type && (field.label || field.name)) {
+              this.addAIField(field.type, field.label || field.name, field);
+            }
+          });
+          this.isDirty = true;
+          this.snackBar.open(`AI successfully generated ${fields.length} fields!`, 'Brilliant', {
+            duration: 5000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['snackbar-ai']
+          });
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to parse AI JSON:", e);
+      }
+    }
+
+    // 2. Fallback to simple command pattern: ADD_FIELD: type: [type], label: [label]
+    const regex = /ADD_FIELD:\s*type[:\s]+(\w+)[,\s]+label[:\s]+([^\\n.|!]+)/i;
+    const match = message.match(regex);
+
+    if (match) {
+      console.log("Match Found!", match);
+      const type = match[1].toLowerCase().trim();
+      const label = match[2].trim();
+      this.addAIField(type, label);
+    } else {
+      console.log("No valid command found in AI message.");
+    }
+  }
+
+
+  addAIField(type: string, label: string, fullConfig?: any) {
+    // Validate type against available tools
+    const validTool = this.availableTools.find(t => t.type === type);
+    if (!validTool) {
+      console.warn(`AI tried to add unknown field type: ${type}`);
+      return;
+    }
+
+    const fieldName = fullConfig?.name || (label.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Math.random().toString(36).substring(7));
+    
+    // Build the new field config, favoring the AI's provided JSON if available
+    const newField: FieldConfig = {
+      type: type as any,
+      name: fieldName,
+      label: label,
+      placeholder: fullConfig?.placeholder || `Enter ${label}...`,
+      required: fullConfig?.required || false,
+      width: fullConfig?.width || '100%',
+      options: fullConfig?.options || ((type === 'dropdown' || type === 'radio' || type === 'multiselect')
+        ? [{ label: 'Option 1', value: '1' }, { label: 'Option 2', value: '2' }]
+        : undefined),
+      precision: fullConfig?.precision,
+      currency: fullConfig?.currency
+    };
+
+    this.formConfig = [...this.formConfig, newField];
+    this.isDirty = true;
+    
+    if (!fullConfig) {
+      this.snackBar.open(`AI added a new ${type} field: "${label}"`, 'Awesome!', {
+        duration: 4000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-ai']
+      });
+    }
+  }
+
   mode: 'edit' | 'view' = 'edit';
 
   toggleMode() {
@@ -95,11 +274,21 @@ export class AppComponent  implements OnInit{
       next: () => {
         this.isDirty = false;
         this.loadSavedForms();
-        alert('Form saved successfully to Backend!');
+        this.snackBar.open(`"${this.formDisplayName}" saved successfully!`, 'OK', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['snackbar-success']
+        });
       },
       error: (err) => {
         console.error('Error saving form:', err);
-        alert('Failed to save form to backend.');
+        this.snackBar.open(`Failed to save "${this.formDisplayName}". Please try again.`, 'Dismiss', {
+          duration: 4000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+          panelClass: ['snackbar-error']
+        });
       }
     });
   }
@@ -143,6 +332,7 @@ activeTab = this.tabs[0].id;
     { type: 'password', label: 'Password', icon: 'lock' },
     { type: 'number', label: 'Number', icon: 'pin' },
     { type: 'decimal', label: 'Decimal', icon: 'calculate' },
+    { type: 'currency', label: 'Currency', icon: 'currency_rupee' },
     { type: 'date', label: 'Date Picker', icon: 'calendar_today' },
     { type: 'timestamp', label: 'Date & Time (Timestamp)', icon: 'schedule' },
     { type: 'dropdown', label: 'Dropdown Select', icon: 'arrow_drop_down' },

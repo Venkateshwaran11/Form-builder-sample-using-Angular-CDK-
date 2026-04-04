@@ -30,4 +30,5 @@ export interface FieldConfig {
   pattern?: string | RegExp;
   errorMessage?: string;
   precision?: number;
+  currency?: string;
 }

@@ -17,7 +17,7 @@ import flatpickr from 'flatpickr';
           #dateInput
           type="text"
           [id]="field.name"
-          [placeholder]="field.placeholder || 'Select Date...'">
+          [placeholder]="field.label?'Enter '+field.label:'Select Date...'">
         <span class="icon">📅</span>
       </div>
 

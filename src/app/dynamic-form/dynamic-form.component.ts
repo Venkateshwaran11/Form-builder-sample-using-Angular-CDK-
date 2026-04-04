@@ -50,6 +50,19 @@ import { MatIconModule } from '@angular/material/icon';
 
       <div cdkDropList class="field-list" [class.view-list]="mode === 'view'" [cdkDropListDisabled]="mode === 'view'" [cdkDropListData]="config" (cdkDropListDropped)="drop($event)">
         
+        <!-- Empty State Placeholder -->
+        <div class="canvas-empty-state" *ngIf="config.length === 0 && mode === 'edit'">
+          <div class="empty-icon-wrapper">
+            <mat-icon class="empty-icon">add_task</mat-icon>
+          </div>
+          <h4 class="empty-title">Your canvas is empty</h4>
+          <p class="empty-subtitle">Drag and drop fields from the left sidebar to start building your dynamic form.</p>
+          <div class="empty-hint">
+             <mat-icon style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle;">tips_and_updates</mat-icon>
+             <span>Hint: You can reorder fields by dragging them.</span>
+          </div>
+        </div>
+
         <div class="field-box" [class.view-box]="mode === 'view'" *ngFor="let field of config; let i = index" cdkDrag [cdkDragDisabled]="mode === 'view'" [style.flex]="(editingIndex === i && mode === 'edit') ? '0 0 100%' : '0 0 ' + getFlexWidth(field.width)">
           <div class="drag-handle" *ngIf="mode === 'edit'" cdkDragHandle>
             <span class="handle-icon">⠿</span>
@@ -112,11 +125,24 @@ import { MatIconModule } from '@angular/material/icon';
                 </div>  
               </div>
             </div>
-            <div class="editor-row options-editor" *ngIf="field.type === 'decimal'">
+            <div class="editor-row options-editor" *ngIf="field.type === 'decimal' || field.type === 'currency'">
               <label>Decimal Precision:</label>
               <div class="options-list">
                 <div class="option-row">
                   <input type="number" [(ngModel)]="field.precision" [ngModelOptions]="{standalone: true}" placeholder="Precision">
+                </div>  
+              </div>
+            </div>
+            <div class="editor-row options-editor" *ngIf="field.type === 'currency'">
+              <label>Choose a Currency:</label>
+              <div class="options-list">
+                <div class="option-row">
+                  <select [(ngModel)]="field.currency" [ngModelOptions]="{standalone: true}" class="editor-input">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="INR">INR</option>
+                  </select>
                 </div>  
               </div>
             </div>
@@ -150,7 +176,7 @@ import { MatIconModule } from '@angular/material/icon';
 
     :host { display: block; width: 100%; min-width: 0; }
     .dynamic-form { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; width: 100%; box-sizing: border-box; }
-    .form-header { margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .form-header { margin-bottom: 10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
     .form-title-area { flex: 1; }
     .header-actions { display: flex; gap: 10px; flex-shrink: 0; }
     
@@ -177,7 +203,7 @@ import { MatIconModule } from '@angular/material/icon';
     .save-btn { background: #10b981; color: white; }
     .save-btn:hover { background: #059669; transform: translateY(-1px); }
     .save-btn:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
-    .form-title-editor { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+    .form-title-editor { display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; }
     .title-input { font-size: 1.6rem; font-weight: 700; color: #0f172a; border: 1px solid transparent; border-bottom: 2px solid #cbd5e1; padding: 5px 0; background: transparent; transition: border-color 0.2s; outline: none; width: 100%; font-family: inherit; }
     .title-input:focus { border-bottom-color: #3b82f6; }
     .form-name-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #64748b; }
@@ -185,7 +211,31 @@ import { MatIconModule } from '@angular/material/icon';
     .name-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
     .view-title { margin: 0; color: #0f172a; font-size: 1.6rem; font-weight: 700; }
     .form-id-display { font-size: 0.8rem; color: #94a3b8; font-family: monospace; margin: 4px 0 0 0; }
-    .empty-state { color: #64748b; font-size: 1rem; margin-top: 10px; font-style: italic; }
+    
+    /* Empty State Styles */
+    .canvas-empty-state {
+      width: 100%;
+      height: 100%;
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      background: rgba(248, 250, 252, 0.5);
+      border-radius: 12px;
+      border: 2px dashed #cbd5e1;
+      margin: auto;
+      pointer-events: none;
+      animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .empty-icon-wrapper { background: #f1f5f9; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; color: #94a3b8; }
+    .empty-icon { font-size: 32px; width: 32px; height: 32px; }
+    .empty-title { margin: 0 0 8px 0; color: #334155; font-size: 1.25rem; font-weight: 700; }
+    .empty-subtitle { margin: 0 0 20px 0; color: #64748b; font-size: 0.95rem; max-width: 300px; line-height: 1.5; }
+    .empty-hint { background: #eff6ff; color: #3b82f6; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
     
     .field-list { min-height: 200px; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 15px; background: #f8fafc; transition: background 0.2s; display: flex !important; flex-wrap: wrap; gap: 15px; align-items: flex-start; align-content: flex-start; }
     .cdk-drop-list-dragging { background: #e0f2fe; border-color: #7dd3fc; }

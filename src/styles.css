@@ -4,3 +4,51 @@
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+/* Fix snackbar overlay positioning to always use the viewport */
+.cdk-overlay-container {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.cdk-global-overlay-wrapper,
+.cdk-overlay-pane {
+  pointer-events: auto;
+}
+
+/* Push top snackbars below the navbar */
+.mat-mdc-snack-bar-container {
+  margin-top: 70px !important;
+}
+
+/* Success - Green */
+.snackbar-success .mdc-snackbar__surface {
+  background-color: #10b981 !important;
+  color: white !important;
+}
+.snackbar-success .mat-mdc-snack-bar-action {
+  color: white !important;
+}
+
+/* Error - Red */
+.snackbar-error .mdc-snackbar__surface {
+  background-color: #ef4444 !important;
+  color: white !important;
+}
+.snackbar-error .mat-mdc-snack-bar-action {
+  color: white !important;
+}
+
+/* AI Info - Blue */
+.snackbar-ai .mdc-snackbar__surface {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+.snackbar-ai .mat-mdc-snack-bar-action {
+  color: white !important;
+}
+

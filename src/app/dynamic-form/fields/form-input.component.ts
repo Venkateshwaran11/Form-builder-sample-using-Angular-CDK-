@@ -16,16 +16,28 @@ import { FieldConfig } from '../models/field-config.interface';
         <textarea *ngSwitchCase="'textarea'"
           [id]="field.name"
           [formControlName]="field.name"
-          [placeholder]="field.placeholder || ''"
+          [placeholder]="field.label?'Enter '+field.label:''"
           [maxlength]="field.max || null">
         </textarea>
         
         <!-- Standard Inputs -->
+         <ng-container *ngSwitchCase="'currency'">
+          <div class="input-group">
+            <span class="currency-symbol">{{ field.currency }}</span>
+            <input type="number" 
+                   [id]="field.name"
+                   [formControlName]="field.name"
+                   [placeholder]="field.label?'Enter '+field.label:''"
+                   [min]="field.min || null"
+                   [max]="field.max || null"
+                   (input)="limitDecimal($event, field.precision)">
+          </div>
+        </ng-container>
         <input *ngSwitchDefault
           [type]="getInputType(field.type)"
           [id]="field.name"
           [formControlName]="field.name"
-          [placeholder]="field.placeholder || ''"
+          [placeholder]="field.label?'Enter '+field.label:''"
           [min]="field.min || null"
           [max]="field.max || null"
           (input)="limitDecimal($event, field.precision)">
