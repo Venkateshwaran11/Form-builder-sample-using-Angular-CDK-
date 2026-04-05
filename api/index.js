@@ -32,6 +32,10 @@ app.post('/api/forms', async (req, res) => {
   try {
     const { name, displayName, config,_id } = req.body;
     const filter = _id ? { _id } : { name };
+    const isExistingForm   = await Form.find({name:name});
+    if(isExistingForm.length>0 && !_id){
+      return res.status(400).json({ error: 'Form already exists' });
+    }
     let form = await Form.findOneAndUpdate(
       filter,
       {

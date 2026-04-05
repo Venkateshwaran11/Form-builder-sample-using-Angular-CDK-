@@ -280,8 +280,8 @@ export class AppComponent  implements OnInit{
       'danger', 'Yes, Clear', 'Cancel'
     );
     if (ok) {
-      this.formConfig = [];
-      this.isDirty = true;
+      this.isDirty = false;
+      this.createNewForm(true)
     }
   }
 
@@ -328,7 +328,7 @@ export class AppComponent  implements OnInit{
       },
       error: (err) => {
         console.error('Error saving form:', err);
-        this.snackBar.open(`Failed to save "${this.formDisplayName}". Please try again.`, 'Dismiss', {
+        this.snackBar.open(`Failed to save "${this.formDisplayName}" ${err.error.error}`, 'Dismiss', {
           duration: 4000,
           horizontalPosition: 'right',
           verticalPosition: 'top',
