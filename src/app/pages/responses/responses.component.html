@@ -1,0 +1,50 @@
+<div class="responses-page">
+  <div class="header">
+    <button class="back-btn" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Dashboard
+    </button>
+    <div class="title-area">
+      <h2>{{ formDisplayName }}</h2>
+      <span class="badge">{{ responses.length }} Responses</span>
+    </div>
+  </div>
+
+  <!-- Spin Loader -->
+  <div class="fb-loader-container" *ngIf="isLoading">
+    <div class="fb-spinner-wrapper">
+      <div class="fb-spinner-ring"></div>
+      <mat-icon class="fb-spinner-icon">dynamic_form</mat-icon>
+    </div>
+    <span class="fb-loader-text">Loading responses...</span>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+  <div class="table-container" *ngIf="responses.length > 0; else noResponses">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Submitted At</th>
+          <th *ngFor="let col of tableColumns">{{ col }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let res of responses">
+          <td class="timestamp-col">{{ res.submittedAt | date:'short' }}</td>
+          <td *ngFor="let col of tableColumns">{{ formatData(res.data[col]) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #noResponses>
+    <div class="empty-state">
+      <div class="empty-icon">
+        <mat-icon>inbox</mat-icon>
+      </div>
+      <h3>No Responses Yet</h3>
+      <p>Once users submit data to your form, it will appear here.</p>
+    </div>
+  </ng-template>
+  </ng-container>
+</div>

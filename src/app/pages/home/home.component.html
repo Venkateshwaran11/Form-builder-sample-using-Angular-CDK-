@@ -1,0 +1,95 @@
+<div class="dashboard-page">
+  <div class="dashboard-container">
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h2>Your Forms</h2>
+      <p>Manage your form definitions and view responses</p>
+    </div>
+    
+    <div class="header-center">
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Search forms by name...">
+        <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-btn">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="primary-btn" (click)="createNewForm()">
+        <mat-icon>add</mat-icon>
+        Create New Form
+      </button>
+    </div>
+  </div>
+
+  <div class="dashboard-content">
+
+    <!-- Spin Loader -->
+    <div class="fb-loader-container" *ngIf="isLoading">
+      <div class="fb-spinner-wrapper">
+        <div class="fb-spinner-ring"></div>
+        <mat-icon class="fb-spinner-icon">dynamic_form</mat-icon>
+      </div>
+      <span class="fb-loader-text">Loading forms...</span>
+    </div>
+
+    <ng-container *ngIf="!isLoading">
+      <div class="form-grid" *ngIf="filteredForms.length > 0; else noForms">
+      <div class="form-card" *ngFor="let form of filteredForms">
+        <div class="card-header">
+          <mat-icon class="form-icon">description</mat-icon>
+          <div class="card-title-group">
+            <h3>{{ form.displayName }}</h3>
+            <span class="form-id-badge">{{ form.name }}</span>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <div class="stat-row">
+            <mat-icon>list_alt</mat-icon>
+            <span>{{ form.config?.length || 0 }} Fields</span>
+          </div>
+          <div class="stat-row" *ngIf="form.updatedAt">
+            <mat-icon>update</mat-icon>
+            <span>Last Updated: {{ form.updatedAt | date:'mediumDate' }}</span>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button class="action-btn" (click)="editForm(form)" title="Edit Builder" style="flex:1; justify-content:center;">
+            <mat-icon>edit</mat-icon> Build
+          </button>
+          <button class="action-btn success-btn" (click)="viewResponses(form)" title="View Responses" style="flex:1; justify-content:center;">
+            <mat-icon>bar_chart</mat-icon> Responses
+          </button>
+          
+          <button class="action-icon-btn info-color" (click)="shareForm(form, $event)" title="Open Public Form">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+          <button class="action-icon-btn danger-color" (click)="deleteForm(form, $event)" title="Delete Form">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <ng-template #noForms>
+      <div class="empty-state">
+        <div class="empty-icon">
+          <mat-icon>note_add</mat-icon>
+        </div>
+        <h3>No Forms Found</h3>
+        <p>You haven't created any forms yet. Click the button below to start building.</p>
+        <button class="primary-btn" (click)="createNewForm()">
+          <mat-icon>add</mat-icon>
+          Create New Form
+        </button>
+      </div>
+    </ng-template>
+
+    </ng-container>
+  </div>
+</div>
+</div>

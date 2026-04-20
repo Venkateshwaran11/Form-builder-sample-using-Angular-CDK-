@@ -31,20 +31,17 @@ import { MatIconModule } from '@angular/material/icon';
         </div>
 
         <div class="header-actions">
-          <button type="button" class="action-btn preview-btn" (click)="toggleModeRequest()">
+          <!-- <button type="button" class="action-btn preview-btn" (click)="toggleModeRequest()">
             <mat-icon>{{ mode === 'edit' ? 'visibility' : 'edit' }}</mat-icon>
             <span>{{ mode === 'edit' ? 'Preview' : 'Editor' }}</span>
-          </button>
+          </button> -->
           
           <button type="button" class="action-btn generate-btn" *ngIf="mode === 'edit'" (click)="generateInternalJson()">
             <mat-icon>description</mat-icon>
             <span>Export JSON</span>
           </button>
 
-          <button type="submit" [disabled]="form.invalid" class="action-btn save-btn" *ngIf="mode === 'view'">
-            <mat-icon>save</mat-icon>
-            <span>Save</span>
-          </button>
+         
         </div>
       </div>
 
@@ -101,7 +98,7 @@ import { MatIconModule } from '@angular/material/icon';
               </select>
             </div>
             
-            <div class="editor-row">
+            <div class="editor-row" *ngIf="field.type !== 'heading'">
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="field.required" (ngModelChange)="updateRequired(i, $event)" [ngModelOptions]="{standalone: true}">
                 Required Field
@@ -150,6 +147,21 @@ import { MatIconModule } from '@angular/material/icon';
               </div>
             </div>
 
+            <div class="editor-row" *ngIf="field.type === 'heading'">
+              <label>Text Alignment:</label>
+              <div class="alignment-options">
+                <button type="button" [class.active]="field.headingTextAlignment === 'left'" (click)="field.headingTextAlignment = 'left'">
+                  <mat-icon>format_align_left</mat-icon>
+                </button>
+                <button type="button" [class.active]="field.headingTextAlignment === 'center'" (click)="field.headingTextAlignment = 'center'">
+                  <mat-icon>format_align_center</mat-icon>
+                </button>
+                <button type="button" [class.active]="field.headingTextAlignment === 'right'" (click)="field.headingTextAlignment = 'right'">
+                  <mat-icon>format_align_right</mat-icon>
+                </button>
+              </div>
+            </div>
+
             <div class="editor-actions" [class.blur]="field.label === '' || field.name === ''">
               <button type="button" class="save-btn" (click)="toggleEdit(null)">Done Editing</button>
             </div>
@@ -160,7 +172,10 @@ import { MatIconModule } from '@angular/material/icon';
             <app-dynamic-field [field]="field" [group]="form"></app-dynamic-field>
           </div>
         </div>
-
+   <button type="submit" [disabled]="form.invalid" class="action-btn save-btn" *ngIf="mode === 'view'">
+            <mat-icon>save</mat-icon>
+            <span>Save</span>
+          </button>
       </div>
 
       <div class="submission-result" *ngIf="(jsonString | keyvalue).length > 0">
@@ -304,6 +319,36 @@ import { MatIconModule } from '@angular/material/icon';
     .view-box { border: none; margin-bottom: 25px; box-shadow: none; background: transparent; }
     .view-box:hover { box-shadow: none; }
     .view-box .field-content { padding: 0; }
+    .alignment-options {
+  display: flex;
+  gap: 8px;
+}
+
+.alignment-options button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #cfd8dc;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alignment-options button mat-icon {
+  font-size: 20px;
+  color: #555;
+}
+
+.alignment-options button.active {
+  background: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.alignment-options button.active mat-icon {
+  color: #2196f3;
+}
   `]
 })
 export class DynamicFormComponent implements OnInit, OnChanges {

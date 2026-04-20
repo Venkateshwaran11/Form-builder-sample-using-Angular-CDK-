@@ -1,0 +1,123 @@
+<div class="builder-page">
+  <nav class="toolbar secondary-toolbar">
+    <div class="toolbar-left">
+      <div class="form-info" style="margin-left: 10px;">
+        <span class="form-title" *ngIf="mode === 'edit'">Editing: {{ formDisplayName }}</span>
+        <span class="form-title" *ngIf="mode === 'view'">Viewing: {{ formDisplayName }}</span>
+        <span class="form-id">{{ formName }}</span>
+      </div>
+    </div>
+
+    <div class="toolbar-center">
+      <div class="status-indicator" [class.dirty]="isDirty">
+        <mat-icon>{{ isDirty ? 'cloud_upload' : 'cloud_done' }}</mat-icon>
+        <span>{{ isDirty ? 'Unsaved Changes' : 'All Changes Saved' }}</span>
+      </div>
+    </div>
+
+    <div class="toolbar-right">
+      <button class="icon-btn" (click)="createNewForm()" title="New Form">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button class="icon-btn" (click)="exportConfig()" title="Export JSON">
+        <mat-icon>ios_share</mat-icon>
+      </button>
+      <button class="icon-btn delete-btn" (click)="clearConfig()" title="Clear Form">
+        <mat-icon>delete_sweep</mat-icon>
+      </button>
+      
+      <div class="divider"></div>
+
+      <button class="action-btn secondary" (click)="saveConfig()">
+        <mat-icon>save</mat-icon>
+        <span>Save</span>
+      </button>
+
+      <button class="action-btn primary" (click)="toggleMode()">
+        <mat-icon>{{ mode === 'edit' ? 'visibility' : 'edit' }}</mat-icon>
+        <span>{{ mode === 'edit' ? 'Preview' : 'Back to Editor' }}</span>
+      </button>
+    </div>
+  </nav>
+  
+  <div class="builder-layout" [class.view-layout]="mode === 'view'" cdkDropListGroup>
+
+    <!-- Spin Loader -->
+    <div class="fb-loader-container" *ngIf="isLoading" style="width: 100%; grid-column: 1 / -1;">
+      <div class="fb-spinner-wrapper">
+        <div class="fb-spinner-ring"></div>
+        <mat-icon class="fb-spinner-icon">dynamic_form</mat-icon>
+      </div>
+      <span class="fb-loader-text">Loading builder...</span>
+    </div>
+    
+    <ng-container *ngIf="!isLoading">
+      <!-- Sidebar: Field Tools -->
+    <div class="builder-sidebar" *ngIf="mode === 'edit'">
+      <div class="sidebar-header tabs">
+        <div class="tabs">
+          <button *ngFor="let tab of tabs" (click)="activeTab = tab.id" [class.active1]="activeTab === tab.id">
+            {{ tab.label }}
+          </button>
+        </div>
+      </div>
+      
+      <div class="sidebar-content" [ngSwitch]="activeTab">
+        <div cdkDropList [cdkDropListData]="availableTools" class="tool-list" *ngSwitchCase="'tab1'">
+          <div class="tool-card" *ngFor="let tool of availableTools" cdkDrag [cdkDragData]="tool">
+            <div class="tool-drag-preview" *cdkDragPreview>
+              <mat-icon style="font-size: 20px; width: 20px; height: 20px;">{{tool.icon}}</mat-icon>
+              <span>{{tool.label}}</span>
+            </div>
+            <span class="{{tool.class}}"><mat-icon >{{tool.icon}}</mat-icon></span>
+            <span class="label">{{tool.label}}</span>
+          </div>
+        </div>
+        <div class="sidebar-actions" *ngSwitchCase="'tab2'">
+          <div class="action-card" (click)="createNewForm()">
+            <div class="action-icon">
+              <mat-icon>add_circle_outline</mat-icon>
+            </div>
+            <div class="action-details">
+              <h4>Create New Form</h4>
+              <p>Start a fresh form from scratch</p>
+            </div>
+          </div>
+          
+          <div class="action-card secondary" (click)="clearConfig()">
+            <div class="action-icon">
+              <mat-icon>layers_clear</mat-icon>
+            </div>
+            <div class="action-details">
+              <h4>Clear Current Canvas</h4>
+              <p>Remove all fields but keep metadata</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Canvas: Dynamic Form Rendering -->
+    <div class="builder-canvas">
+      <app-dynamic-form
+        [config]="formConfig"
+        [mode]="mode"
+        [(formName)]="formName"
+        [(formDisplayName)]="formDisplayName"
+        (submitForm)="onFormSubmit($event)"
+        (toggleMode)="toggleMode()"
+        (configChange)="onConfigChange($event)">
+      </app-dynamic-form>
+
+      <!-- Render the submitted form data natively for the user -->
+      <div class="submission-result" *ngIf="submittedData">
+        <h3>✅ Form Successfully Submitted!</h3>
+        <p style="margin-bottom: 15px; color: #94a3b8; font-size: 0.9rem; margin-top:0;">Here is the resulting JSON payload extracted natively from your dynamically generated form.</p>
+        <pre>{{ submittedData | json }}</pre>
+        <button class="toggle-btn" style="background:#ef4444; margin-top: 15px;" (click)="submittedData = null">Clear Results</button>
+      </div>
+    </div>
+    </ng-container>
+  </div>
+</div>

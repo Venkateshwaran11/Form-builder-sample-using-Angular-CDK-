@@ -5,7 +5,7 @@ export type FieldType =
   'number' | 'decimal' | 'currency' | 'mobile' |
   'date' | 'timestamp' | 
   'checkbox' | 'toggle' | 'radio' | 
-  'dropdown' | 'multiselect';
+  'dropdown' | 'multiselect' | 'heading';
 
 export interface FieldOption {
   label: string;
@@ -23,6 +23,7 @@ export interface FieldConfig {
   required?: boolean;
   disabled?: boolean;
   width?: '100%' | '50%' | '33%' | '25%';
+  headingTextAlignment?: 'left' | 'center' | 'right';
   
   // Specific constraints
   min?: number;
