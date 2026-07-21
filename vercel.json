@@ -1,11 +1,18 @@
 {
   "version": 2,
-  "public": true,
   "framework": "angular",
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api"
+    },
+    {
+      "source": "/mcp/(.*)",
+      "destination": "/api/mcp"
+    },
+    {
+      "source": "/mcp",
+      "destination": "/api/mcp"
     },
     {
       "source": "/(.*)",
