@@ -7,10 +7,14 @@ const Form = require('./models/Form');
 const Response = require('./models/Response');
 const dns = require("node:dns");
 
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
+try {
+  dns.setServers(["1.1.1.1", "8.8.8.8"]);
+} catch (e) {
+  console.warn("Custom DNS servers disabled:", e.message);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/formbuilder';
 
 const fs = require('fs');
 
@@ -19,14 +23,21 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Create local uploads directory if it does not exist
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Safe uploads directory initialization for serverless / read-only filesystems
+const uploadsDir = process.env.VERCEL ? '/tmp/uploads' : path.join(__dirname, '../uploads');
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (e) {
+  console.warn('Uploads directory creation skipped:', e.message);
 }
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(uploadsDir));
+
+// Mount MCP server endpoint
+app.use('/mcp', require('./mcp'));
 
 // Serve static files in production (only if NOT on Vercel)
 if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
@@ -34,10 +45,31 @@ if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   app.use(express.static(distPath));
 }
 
-// Database Connection
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB Connection Error:', err));
+// Serverless-safe Database Connection Helper
+let isConnected = false;
+async function connectDB() {
+  if (isConnected || mongoose.connection.readyState === 1) {
+    isConnected = true;
+    return;
+  }
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is missing. Please set MONGODB_URI in Vercel environment variables.');
+  }
+  await mongoose.connect(MONGODB_URI);
+  isConnected = true;
+}
+
+// Ensure Database is connected for all incoming requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('❌ MongoDB Connection Error:', err.message);
+    res.status(500).json({ error: 'Database connection failed: ' + err.message });
+  }
+});
 
 // --- API TO MANAGE FORM DEFINITIONS ---
 
@@ -73,7 +105,10 @@ app.get('/api/forms', async (req, res) => {
   try {
     const forms = await Form.find().sort({ updatedAt: -1 }).lean();
     const formsWithCounts = await Promise.all(forms.map(async (form) => {
-      const responseCount = await Response.countDocuments({ formId: form._id });
+      const formIdStr = form._id ? String(form._id) : '';
+      const responseCount = await Response.countDocuments({
+        $or: [{ formId: formIdStr }, { formId: form.name }]
+      });
       return { ...form, responseCount };
     }));
     res.json(formsWithCounts);
