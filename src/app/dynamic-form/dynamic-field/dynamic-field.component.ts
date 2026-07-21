@@ -6,6 +6,7 @@ import { FormInputComponent } from '../fields/form-input.component';
 import { FormSelectComponent } from '../fields/form-select.component';
 import { FormRadioComponent } from '../fields/form-radio.component';
 import { FormDateComponent } from '../fields/form-date.component';
+import { FormFileComponent } from '../fields/form-file.component';
 import { MatIcon } from "@angular/material/icon";
 
 @Component({
@@ -18,8 +19,9 @@ import { MatIcon } from "@angular/material/icon";
     FormSelectComponent,
     FormRadioComponent,
     FormDateComponent,
+    FormFileComponent,
     MatIcon
-],
+  ],
   styles: [`
     .heading {
     display: flex;
@@ -78,7 +80,9 @@ import { MatIcon } from "@angular/material/icon";
         <mat-icon>view_headline </mat-icon>
         <span>{{ field.label }}</span>
       </div>
-        
+
+      <app-form-file *ngSwitchCase="'file'"
+        [field]="field" [group]="group"></app-form-file>
     </ng-container>
   `
 })
@@ -101,6 +105,9 @@ export class DynamicFieldComponent {
     }
     if (['heading'].includes(type)) {
       return 'heading';
+    }
+    if (['file'].includes(type)) {
+      return 'file';
     }
     return 'input';
   }

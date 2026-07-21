@@ -31,16 +31,16 @@ export class BuilderComponent implements OnInit, OnDestroy {
   private messageUpdateHandler: any;
 
   constructor(
-    private snackBar: MatSnackBar, 
-    private ngZone: NgZone, 
+    private snackBar: MatSnackBar,
+    private ngZone: NgZone,
     private dialog: MatDialog,
     private route: ActivatedRoute,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.formConfig = [];
-    
+
     // Check if we are loading an existing form
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
@@ -59,7 +59,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
     // Actually flowise injects it globally usually, but we could try to destroy it or hide it.
     const flowiseRoot = document.getElementById('flowise-chat-bubble-root');
     if (flowiseRoot) flowiseRoot.style.display = 'none';
-    
+
     if (this.messageUpdateHandler) {
       window.removeEventListener('ai-messages-update', this.messageUpdateHandler);
     }
@@ -95,11 +95,11 @@ export class BuilderComponent implements OnInit, OnDestroy {
   initFlowise() {
     const existingRoot = document.getElementById('flowise-chat-bubble-root');
     if (existingRoot) {
-        existingRoot.style.display = 'block'; // Ensure it's visible if already initialized
+      existingRoot.style.display = 'block'; // Ensure it's visible if already initialized
     } else {
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.innerHTML = `
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.innerHTML = `
         import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
         Chatbot.init({
             chatflowid: "9872ddd1-b50a-4abe-b856-b72e4ee98c72",
@@ -118,7 +118,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
             }
         });
         `;
-        document.body.appendChild(script);
+      document.body.appendChild(script);
     }
 
     const historicalCount = parseInt(sessionStorage.getItem('ai_msg_count') || '0', 10);
@@ -158,7 +158,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   parseAICommand(message: string) {
     // Attempt to extract markdown JSON block or raw JSON braces/brackets
     const jsonStrMatch = message.match(/```(?:json)?\s*([\s\S]*?)```/) || message.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
-    
+
     if (jsonStrMatch) {
       try {
         const parsed = JSON.parse(jsonStrMatch[1] || jsonStrMatch[0]);
@@ -231,7 +231,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
       headingTextAlignment: fullConfig?.headingTextAlignment || 'left',
       min: fullConfig?.min,
       max: fullConfig?.max,
-     
+
     };
     this.formConfig = [...this.formConfig, newField];
     this.isDirty = true;
@@ -250,23 +250,23 @@ export class BuilderComponent implements OnInit, OnDestroy {
   isDirty: boolean = false;
   id = '';
   isLoading: boolean = false;
-  
+
   loadForm(formId: string) {
     this.isLoading = true;
     this.http.get<any[]>(`${this.apiUrl}/forms`).subscribe({
       next: (forms) => {
         const form = forms.find(f => f._id === formId || f.name === formId);
         if (form) {
-            this.formConfig = [...form.config];
-            this.formName = form.name;
-            this.formDisplayName = form.displayName;
-            this.isDirty = false;
-            this.id = form._id;
-          } else {
-            this.openAlert('Error', 'Form not found', 'error');
-            this.router.navigate(['/']);
-          }
-          this.isLoading = false;
+          this.formConfig = [...form.config];
+          this.formName = form.name;
+          this.formDisplayName = form.displayName;
+          this.isDirty = false;
+          this.id = form._id;
+        } else {
+          this.openAlert('Error', 'Form not found', 'error');
+          this.router.navigate(['/']);
+        }
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Error loading forms:', err);
@@ -299,10 +299,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.isDirty = false;
     this.submittedData = null;
     this.id = '';
-    
+
     // Explicitly update URL to clean out stale IDs if needed
     if (!afterSave) {
-        this.router.navigate(['/builder/new']);
+      this.router.navigate(['/builder/new']);
     }
   }
 
@@ -330,7 +330,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   activeTab = this.tabs[0].id;
 
   availableTools = [
-    { type: 'text', label: 'Text Input', icon: "edit",class:"btn-icon edit-btn" },
+    { type: 'text', label: 'Text Input', icon: "edit", class: "btn-icon edit-btn" },
     { type: 'textarea', label: 'Text Area', icon: 'description' },
     { type: 'email', label: 'Email', icon: 'email' },
     { type: 'password', label: 'Password', icon: 'lock' },
@@ -344,7 +344,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
     { type: 'checkbox', label: 'Checkbox', icon: 'check_box' },
     { type: 'radio', label: 'Radio Buttons', icon: 'radio_button_checked' },
     { type: 'toggle', label: 'Boolean', icon: 'toggle_on' },
-    { type: 'heading', label: 'Heading', icon: 'view_headline' }
+    { type: 'heading', label: 'Heading', icon: 'view_headline' },
+    { type: 'file', label: 'File Upload', icon: 'file_upload' }
   ];
 
   formConfig: FieldConfig[] = [];

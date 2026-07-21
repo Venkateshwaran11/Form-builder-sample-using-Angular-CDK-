@@ -15,8 +15,8 @@ import { FieldConfig } from '../models/field-config.interface';
         <!-- Radio Buttons -->
         <div *ngSwitchCase="'radio'" class="options-container">
           <label class="inline-option" *ngFor="let option of field.options">
-            <input type="radio" [formControlName]="field.name" [value]="option.value">
-            {{ option.label }}
+            <input type="radio" [formControlName]="field.name" [value]="option.value || option.label || option">
+            {{ option.label || option }}
           </label>
         </div>
 

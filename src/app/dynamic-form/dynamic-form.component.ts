@@ -410,7 +410,7 @@ export class DynamicFormComponent implements OnInit, OnChanges {
       if(field.max){
         validators.push(Validators.max(field.max));
       }
-      group.addControl(field.name, this.fb.control(field.value || '', validators.length > 0 ? validators : null));
+      group.addControl(field.name, this.fb.control((field.value !== undefined && field.value !== null) ? field.value : '', validators.length > 0 ? validators : null));
     });
     this.form = group;
   }

@@ -5,14 +5,28 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const Form = require('./models/Form');
 const Response = require('./models/Response');
+const dns = require("node:dns");
 
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/formbuilder';
 
+const fs = require('fs');
+
 // Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Create local uploads directory if it does not exist
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(uploadsDir));
 
 // Serve static files in production (only if NOT on Vercel)
 if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
@@ -30,10 +44,10 @@ mongoose.connect(MONGODB_URI)
 // Save or Update a Form Config
 app.post('/api/forms', async (req, res) => {
   try {
-    const { name, displayName, config,_id } = req.body;
+    const { name, displayName, config, _id } = req.body;
     const filter = _id ? { _id } : { name };
-    const isExistingForm   = await Form.find({name:name});
-    if(isExistingForm.length>0 && !_id){
+    const isExistingForm = await Form.find({ name: name });
+    if (isExistingForm.length > 0 && !_id) {
       return res.status(400).json({ error: 'Form already exists' });
     }
     let form = await Form.findOneAndUpdate(
@@ -57,8 +71,12 @@ app.post('/api/forms', async (req, res) => {
 // Get All Form Definitions
 app.get('/api/forms', async (req, res) => {
   try {
-    const forms = await Form.find().sort({ updatedAt: -1 });
-    res.json(forms);
+    const forms = await Form.find().sort({ updatedAt: -1 }).lean();
+    const formsWithCounts = await Promise.all(forms.map(async (form) => {
+      const responseCount = await Response.countDocuments({ formId: form._id });
+      return { ...form, responseCount };
+    }));
+    res.json(formsWithCounts);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -69,7 +87,8 @@ app.delete('/api/forms/:name', async (req, res) => {
   try {
     const result = await Form.findOneAndDelete({ name: req.params.name });
     if (!result) return res.status(404).json({ error: 'Form not found' });
-    res.json({ message: 'Form deleted successfully' });
+    await Response.deleteMany({ formId: req.params.name });
+    res.json({ message: 'Form and associated responses deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -94,6 +113,53 @@ app.get('/api/responses/:formId', async (req, res) => {
   try {
     const responses = await Response.find({ formId: req.params.formId }).sort({ submittedAt: -1 });
     res.json(responses);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a specific response by ID
+app.delete('/api/responses/:id', async (req, res) => {
+  try {
+    const result = await Response.findByIdAndDelete(req.params.id);
+    if (!result) return res.status(404).json({ error: 'Response not found' });
+    res.json({ message: 'Response deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete all responses for a form
+app.delete('/api/responses/form/:formId', async (req, res) => {
+  try {
+    const result = await Response.deleteMany({ formId: req.params.formId });
+    res.json({ message: `Deleted ${result.deletedCount} response(s)` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- API FOR FILE UPLOADS ---
+app.post('/api/upload', async (req, res) => {
+  try {
+    const { filename, base64 } = req.body;
+    if (!filename || !base64) {
+      return res.status(400).json({ error: 'Filename and base64 string are required.' });
+    }
+
+    // Remove base64 data URL prefix if present
+    const base64Data = base64.replace(/^data:.*;base64,/, "");
+    const fileBuffer = Buffer.from(base64Data, 'base64');
+
+    // Create unique filename
+    const uniqueFilename = `${Date.now()}-${filename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const filePath = path.join(uploadsDir, uniqueFilename);
+
+    fs.writeFileSync(filePath, fileBuffer);
+
+    // Return the relative file path URL
+    const fileUrl = `/uploads/${uniqueFilename}`;
+    res.json({ fileUrl });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

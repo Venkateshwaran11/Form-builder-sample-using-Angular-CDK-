@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -18,28 +18,31 @@ export class HomeComponent implements OnInit {
   private router = inject(Router);
   apiUrl = environment.apiUrl;
 
-  forms: any[] = [];
-  searchQuery: string = '';
+  forms = signal<any[]>([]);
+  searchQuery = signal<string>('');
   isLoading: boolean = true;
+
+  filteredForms = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    const allForms = this.forms();
+    if (!query) return allForms;
+    return allForms.filter(f =>
+      f.displayName?.toLowerCase().includes(query) ||
+      f.name?.toLowerCase().includes(query)
+    );
+  });
+
+  formCount = computed(() => this.filteredForms().length);
 
   ngOnInit() {
     this.loadForms();
-  }
-
-  get filteredForms() {
-    if (!this.searchQuery) return this.forms;
-    const query = this.searchQuery.toLowerCase();
-    return this.forms.filter(f => 
-      f.displayName?.toLowerCase().includes(query) || 
-      f.name?.toLowerCase().includes(query)
-    );
   }
 
   loadForms() {
     this.isLoading = true;
     this.http.get<any[]>(`${this.apiUrl}/forms`).subscribe({
       next: (data) => {
-        this.forms = data;
+        this.forms.set(data || []);
         this.isLoading = false;
       },
       error: (err) => {
@@ -47,6 +50,14 @@ export class HomeComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  onSearchChange(value: string) {
+    this.searchQuery.set(value);
+  }
+
+  clearSearch() {
+    this.searchQuery.set('');
   }
 
   createNewForm() {

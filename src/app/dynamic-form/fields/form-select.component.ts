@@ -11,13 +11,23 @@ import { FieldConfig } from '../models/field-config.interface';
     <div class="field-container" [formGroup]="group">
       <label [for]="field.name">{{ field.label }}<span *ngIf="field.required" class="req">*</span></label>
       
-      <select 
+      <!-- Single Select Dropdown -->
+      <select *ngIf="field.type === 'dropdown'"
+        [id]="field.name"
+        [formControlName]="field.name">
+        <option [ngValue]="''" disabled>Select {{ field.label }}</option>
+        <option *ngFor="let option of field.options" [ngValue]="option.value || option.label || option">
+          {{ option.label || option }}
+        </option>
+      </select>
+
+      <!-- Multi-Select Dropdown -->
+      <select *ngIf="field.type === 'multiselect'"
         [id]="field.name"
         [formControlName]="field.name"
-        [multiple]="field.type === 'multiselect'">
-        <option *ngIf="field.type === 'dropdown'" value="" disabled>Select {{ field.label }}</option>
-        <option *ngFor="let option of field.options" [value]="option.value">
-          {{ option.label }}
+        multiple>
+        <option *ngFor="let option of field.options" [ngValue]="option.value || option.label || option">
+          {{ option.label || option }}
         </option>
       </select>
 

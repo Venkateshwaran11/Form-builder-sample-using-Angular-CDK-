@@ -5,7 +5,7 @@ export type FieldType =
   'number' | 'decimal' | 'currency' | 'mobile' |
   'date' | 'timestamp' | 
   'checkbox' | 'toggle' | 'radio' | 
-  'dropdown' | 'multiselect' | 'heading';
+  'dropdown' | 'multiselect' | 'heading' | 'file';
 
 export interface FieldOption {
   label: string;
