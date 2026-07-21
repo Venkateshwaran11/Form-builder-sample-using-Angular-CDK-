@@ -5,16 +5,12 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const Form = require('./models/Form');
 const Response = require('./models/Response');
-const dns = require("node:dns");
+// const dns = require("node:dns");
 
-// try {
-//   dns.setServers(["1.1.1.1", "8.8.8.8"]);
-// } catch (e) {
-//   console.warn("Custom DNS servers disabled:", e.message);
-// }
-
+// dns.setServers(["1.1.1.1", "8.8.8.8"]);
 const app = express();
 const PORT = process.env.PORT || 3000;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/formbuilder';
 
 const fs = require('fs');
 
@@ -23,21 +19,14 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Safe uploads directory initialization for serverless / read-only filesystems
-const uploadsDir = process.env.VERCEL ? '/tmp/uploads' : path.join(__dirname, '../uploads');
-try {
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
-} catch (e) {
-  console.warn('Uploads directory creation skipped:', e.message);
+// Create local uploads directory if it does not exist
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(uploadsDir));
-
-// Mount MCP server endpoint
-app.use('/mcp', require('./mcp'));
 
 // Serve static files in production (only if NOT on Vercel)
 if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
@@ -46,7 +35,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
 }
 
 // Database Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/formbuilder')
+mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
@@ -84,10 +73,7 @@ app.get('/api/forms', async (req, res) => {
   try {
     const forms = await Form.find().sort({ updatedAt: -1 }).lean();
     const formsWithCounts = await Promise.all(forms.map(async (form) => {
-      const formIdStr = form._id ? String(form._id) : '';
-      const responseCount = await Response.countDocuments({
-        $or: [{ formId: formIdStr }, { formId: form.name }]
-      });
+      const responseCount = await Response.countDocuments({ formId: form._id });
       return { ...form, responseCount };
     }));
     res.json(formsWithCounts);
