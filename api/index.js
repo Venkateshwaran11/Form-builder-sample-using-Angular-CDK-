@@ -7,11 +7,11 @@ const Form = require('./models/Form');
 const Response = require('./models/Response');
 const dns = require("node:dns");
 
-try {
-  dns.setServers(["1.1.1.1", "8.8.8.8"]);
-} catch (e) {
-  console.warn("Custom DNS servers disabled:", e.message);
-}
+// try {
+//   dns.setServers(["1.1.1.1", "8.8.8.8"]);
+// } catch (e) {
+//   console.warn("Custom DNS servers disabled:", e.message);
+// }
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,31 +45,10 @@ if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   app.use(express.static(distPath));
 }
 
-// Serverless-safe Database Connection Helper
-let isConnected = false;
-async function connectDB() {
-  if (isConnected || mongoose.connection.readyState === 1) {
-    isConnected = true;
-    return;
-  }
-  const MONGODB_URI = process.env.MONGODB_URI;
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI environment variable is missing. Please set MONGODB_URI in Vercel environment variables.');
-  }
-  await mongoose.connect(MONGODB_URI);
-  isConnected = true;
-}
-
-// Ensure Database is connected for all incoming requests
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    console.error('❌ MongoDB Connection Error:', err.message);
-    res.status(500).json({ error: 'Database connection failed: ' + err.message });
-  }
-});
+// Database Connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/formbuilder')
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 // --- API TO MANAGE FORM DEFINITIONS ---
 
