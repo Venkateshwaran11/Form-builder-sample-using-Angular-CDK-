@@ -66,7 +66,6 @@ export class FormInputComponent {
   @Input() group!: FormGroup;
 
   getInputType(type: string): string {
-    console.log(this.field,this.group)
     switch (type) {
       case 'password': return 'password';
       case 'email': return 'email';

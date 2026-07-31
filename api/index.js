@@ -75,16 +75,38 @@ app.post('/api/forms', async (req, res) => {
 app.get('/api/forms', async (req, res) => {
   try {
     const forms = await Form.find().sort({ updatedAt: -1 }).lean();
-    const formsWithCounts = await Promise.all(forms.map(async (form) => {
-      const responseCount = await Response.countDocuments({ formId: form._id });
-      return { ...form, responseCount };
+
+    const counts = await Response.aggregate([
+      {
+        $group: {
+          _id: "$formId",
+          responseCount: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const countMap = new Map(
+      counts.map(c => [c._id.toString(), c.responseCount])
+    );
+
+    const formsWithCounts = forms.map(form => ({
+      ...form,
+      responseCount: countMap.get(form._id.toString()) || 0
     }));
     res.json(formsWithCounts);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
+// get form by id
+app.get('/api/forms/:id', async (req, res) => {
+  try {
+    const form = await Form.findById(req.params.id);
+    res.json(form);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // Delete a Form Definition
 app.delete('/api/forms/:name', async (req, res) => {
   try {

@@ -656,3 +656,11 @@
 .submission-result { margin-top: 30px; background: #0f172a; color: #e2e8f0; padding: 25px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3); border: 1px solid #334155; }
 .submission-result h3 { margin-top: 0; color: #10b981; border-bottom: 1px solid #334155; padding-bottom: 15px; font-size: 1.3rem; }
 .submission-result pre { white-space: pre-wrap; word-wrap: break-word; font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; background: #1e293b; padding: 15px; border-radius: 6px; border: 1px inset #334155; }
+.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+  background-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+}

@@ -7,7 +7,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { exhaustMap, firstValueFrom, tap } from 'rxjs';
 
 import { DynamicFormComponent } from '../../dynamic-form/dynamic-form.component';
 import { FieldConfig } from '../../dynamic-form/models/field-config.interface';
@@ -253,9 +253,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   loadForm(formId: string) {
     this.isLoading = true;
-    this.http.get<any[]>(`${this.apiUrl}/forms`).subscribe({
-      next: (forms) => {
-        const form = forms.find(f => f._id === formId || f.name === formId);
+    this.http.get<any>(`${this.apiUrl}/forms/${formId}`).subscribe({
+      next: (form) => {
         if (form) {
           this.formConfig = [...form.config];
           this.formName = form.name;
@@ -276,8 +275,17 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   exportConfig() {
-    console.log('Exported Form Configuration:', JSON.stringify(this.formConfig, null, 2));
-    this.openAlert('Exported!', 'Form config exported to browser console.', 'success');
+    if (!this.formConfig || this.formConfig.length === 0) {
+      return;
+    }
+    const blob = new Blob([JSON.stringify(this.formConfig, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${this.formName}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.snackBar.open(`"${this.formDisplayName}" exported successfully!`, 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-success'] });
   }
 
   async clearConfig() {
@@ -307,6 +315,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   saveConfig() {
+    if(!this.formBuilderSaveValidations()){
+      return;
+    }
+    
     const formData = {
       name: this.formName,
       displayName: this.formDisplayName,
@@ -367,5 +379,16 @@ export class BuilderComponent implements OnInit, OnDestroy {
   onConfigChange(newConfig: FieldConfig[]) {
     this.formConfig = newConfig;
     this.isDirty = true;
+  }
+  formBuilderSaveValidations(){
+    if(this.formName === ''){
+      this.openAlert('Error', 'Form name is required', 'error');
+      return false;
+    }
+    if(this.formConfig.length === 0){
+      this.openAlert('Error', 'Form is empty', 'error');
+      return false;
+    }
+    return true;
   }
 }

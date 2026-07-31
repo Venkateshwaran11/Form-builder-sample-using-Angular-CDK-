@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-dynamic-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule, DynamicFieldComponent,MatIconModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule, DynamicFieldComponent, MatIconModule],
   template: `
     <form class="dynamic-form" [class.view-form]="mode === 'view'" [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="form-header">
@@ -19,7 +19,7 @@ import { MatIconModule } from '@angular/material/icon';
               <input type="text" [ngModel]="formDisplayName" (ngModelChange)="updateFormDisplayName($event)" [ngModelOptions]="{standalone: true}" class="title-input" placeholder="Form Display Name" title="Edit Form Display Name">
               <div class="form-name-row">
                 <label>Form ID:</label>
-                <input type="text" [ngModel]="formName" (ngModelChange)="updateFormName($event)" [ngModelOptions]="{standalone: true}" class="name-input" placeholder="form_id" title="Auto-generated Form ID Key">
+                <input type="text" [ngModel]="formName" (ngModelChange)="updateFormName($event)" [ngModelOptions]="{standalone: true}" class="name-input disabled" placeholder="form_id" title="Auto-generated Form ID Key" disabled="">
               </div>
             </div>
           </ng-container>
@@ -36,7 +36,7 @@ import { MatIconModule } from '@angular/material/icon';
             <span>{{ mode === 'edit' ? 'Preview' : 'Editor' }}</span>
           </button> -->
           
-          <button type="button" class="action-btn generate-btn" *ngIf="mode === 'edit'" (click)="generateInternalJson()">
+          <button type="button" [disabled]="config.length===0" class="action-btn generate-btn" *ngIf="mode === 'edit'" (click)="generateInternalJson()" [ngClass]="config.length===0?'disabled':''">
             <mat-icon>description</mat-icon>
             <span>Export JSON</span>
           </button>
@@ -85,7 +85,7 @@ import { MatIconModule } from '@angular/material/icon';
             
             <div class="editor-row">
               <label>JSON Key (Name):</label>
-              <input type="text" [ngModel]="field.name" (ngModelChange)="updateFieldName(i, $event)" [ngModelOptions]="{standalone: true}" class="editor-input">
+              <input type="text" [ngModel]="field.name" disabled="" (ngModelChange)="updateFieldName(i, $event)" [ngModelOptions]="{standalone: true}" class="editor-input disabled">
             </div>
             
             <div class="editor-row">
@@ -349,6 +349,14 @@ import { MatIconModule } from '@angular/material/icon';
 .alignment-options button.active mat-icon {
   color: #2196f3;
 }
+.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+  background-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+}
   `]
 })
 export class DynamicFormComponent implements OnInit, OnChanges {
@@ -455,6 +463,10 @@ export class DynamicFormComponent implements OnInit, OnChanges {
   }
 
   toggleEdit(index: number | null) {
+    if(this.editingIndex!==null && this.editingIndex!==undefined){
+      this.config[this.editingIndex].isEditing = false;
+    }
+    console.log(this.config)
     this.editingIndex = index;
   }
 
@@ -595,6 +607,9 @@ export class DynamicFormComponent implements OnInit, OnChanges {
   }
 
   generateInternalJson() {
+    if (!this.config) {
+      return
+    }
     const finalFormJson = {
       type: this.formName,
       formName: this.formName,

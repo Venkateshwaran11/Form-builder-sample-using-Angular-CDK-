@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
+import { retry, timer } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -40,7 +41,13 @@ export class HomeComponent implements OnInit {
 
   loadForms() {
     this.isLoading = true;
-    this.http.get<any[]>(`${this.apiUrl}/forms`).subscribe({
+    this.http.get<any[]>(`${this.apiUrl}/forms`).pipe(retry({
+      count: 5,
+      delay: (error) => {
+        console.log('Retrying...', error.status);
+        return timer(2000);
+      }
+    })).subscribe({
       next: (data) => {
         this.forms.set(data || []);
         this.isLoading = false;

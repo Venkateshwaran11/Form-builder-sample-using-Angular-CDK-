@@ -19,10 +19,12 @@
       <button class="icon-btn" (click)="createNewForm()" title="New Form">
         <mat-icon>add</mat-icon>
       </button>
-      <button class="icon-btn" (click)="exportConfig()" title="Export JSON">
+      <button class="icon-btn" (click)="exportConfig()" [disabled]="formConfig.length===0" title="Export JSON"
+        [ngClass]="formConfig.length===0? 'disabled': ''">
         <mat-icon>ios_share</mat-icon>
       </button>
-      <button class="icon-btn delete-btn" (click)="clearConfig()" title="Clear Form">
+      <button class="icon-btn delete-btn" (click)="clearConfig()" title="Clear Form"
+        [ngClass]="formConfig.length===0? 'disabled': ''">
         <mat-icon>delete_sweep</mat-icon>
       </button>
       

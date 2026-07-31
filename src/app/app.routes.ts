@@ -9,9 +9,9 @@ export const routes: Routes = [
   // { path: '', component: HomeComponent },
   // { path: '', component: LoginComponent },
   { path: '', component: HomeComponent },
-  { path: 'builder', component: BuilderComponent },
-  { path: 'builder/:id', component: BuilderComponent },
-  { path: 'responses/:id', component: ResponsesComponent },
-  { path: 'f/:id', component: ViewerComponent },
+  { path: 'builder', loadComponent: () => import('./pages/builder/builder.component').then(m => m.BuilderComponent) },
+  { path: 'builder/:id', loadComponent: () => import('./pages/builder/builder.component').then(m => m.BuilderComponent) },
+  { path: 'responses/:id', loadComponent: () => import('./pages/responses/responses.component').then(m => m.ResponsesComponent) },
+  { path: 'f/:id', loadComponent: () => import('./pages/viewer/viewer.component').then(m => m.ViewerComponent) },
   { path: '**', redirectTo: '' }
 ];
