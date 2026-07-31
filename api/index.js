@@ -5,9 +5,12 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const Form = require('./models/Form');
 const Response = require('./models/Response');
-// const dns = require("node:dns");
+// const dns = require('node:dns');
+// dns.setServers(['1.1.1.1', '8.8.8.8']);
 
-// dns.setServers(["1.1.1.1", "8.8.8.8"]);
+console.log("Server started at:", new Date().toISOString());
+console.log("PID:", process.pid);
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/formbuilder';
