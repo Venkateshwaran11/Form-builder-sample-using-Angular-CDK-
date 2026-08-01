@@ -7,10 +7,10 @@ const cors = require('cors');
 // dns.setServers(['1.1.1.1', '8.8.8.8']);
 const fs = require('fs');
 
-const formRoutes = require('./routes/formRoutes');
-const responseRoutes = require('./routes/responseRoutes');
-const uploadRoutes = require('./routes/uploadRoutes');
-const authRoutes = require('./routes/registerandLoginRoutes')
+const formRoutes = require('./_src/routes/formRoutes');
+const responseRoutes = require('./_src/routes/responseRoutes');
+const uploadRoutes = require('./_src/routes/uploadRoutes');
+const authRoutes = require('./_src/routes/registerandLoginRoutes')
 
 console.log("Server started at:", new Date().toISOString());
 console.log("PID:", process.pid);

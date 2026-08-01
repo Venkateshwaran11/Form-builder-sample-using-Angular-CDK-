@@ -217,6 +217,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               config,
               updatedAt: Date.now(),
             },
+            $setOnInsert: {
+              createdAt: Date.now(),
+            },
           },
           { new: true, upsert: true }
         );
