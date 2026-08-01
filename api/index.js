@@ -6,11 +6,7 @@ const cors = require('cors');
 // const dns = require('node:dns');
 // dns.setServers(['1.1.1.1', '8.8.8.8']);
 const fs = require('fs');
-connectDB()
-const formRoutes = require('./_src/routes/formRoutes');
-const responseRoutes = require('./_src/routes/responseRoutes');
-const uploadRoutes = require('./_src/routes/uploadRoutes');
-const authRoutes = require('./_src/routes/registerandLoginRoutes')
+
 
 console.log("Server started at:", new Date().toISOString());
 console.log("PID:", process.pid);
@@ -45,6 +41,11 @@ await mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 }
+connectDB()
+const formRoutes = require('./_src/routes/formRoutes');
+const responseRoutes = require('./_src/routes/responseRoutes');
+const uploadRoutes = require('./_src/routes/uploadRoutes');
+const authRoutes = require('./_src/routes/registerandLoginRoutes')
 // --- API ROUTES ---
 app.use('/api/forms', formRoutes);
 app.use('/api/responses', responseRoutes);
