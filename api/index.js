@@ -3,8 +3,8 @@ const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-// const dns = require('node:dns');
-// dns.setServers(['1.1.1.1', '8.8.8.8']);
+const dns = require('node:dns');
+dns.setServers(['1.1.1.1', '8.8.8.8']);
 const fs = require('fs');
 
 const formRoutes = require('./_src/routes/formRoutes');
@@ -40,7 +40,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
 }
 
 // Database Connection
-mongoose.connect(MONGODB_URI)
+await mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
