@@ -45,7 +45,7 @@ await mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 }
-await connectDB()
+connectDB()
 // --- API ROUTES ---
 app.use('/api/forms', formRoutes);
 app.use('/api/responses', responseRoutes);
