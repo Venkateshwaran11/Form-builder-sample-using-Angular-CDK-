@@ -184,6 +184,30 @@
   transform: translateX(4px);
 }
 
+.login-btn:disabled {
+  background: #cbd5e1 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.spin-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  animation: rotation 1s infinite linear;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Footer layout */
 .login-footer {
   display: flex;

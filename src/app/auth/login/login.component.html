@@ -45,9 +45,11 @@
         </div>
       </div>
 
-      <button type="submit" class="login-btn">
-        <span>Login</span>
-        <mat-icon class="btn-icon">arrow_forward</mat-icon>
+      <button type="submit" class="login-btn" [disabled]="isLoading">
+        <mat-icon class="spin-icon" *ngIf="isLoading">sync</mat-icon>
+        <span *ngIf="!isLoading">Login</span>
+        <span *ngIf="isLoading">Logging in...</span>
+        <mat-icon class="btn-icon" *ngIf="!isLoading">arrow_forward</mat-icon>
       </button>
 
       <div class="login-footer">
