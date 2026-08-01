@@ -3,11 +3,14 @@ const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+// const dns = require('node:dns');
+// dns.setServers(['1.1.1.1', '8.8.8.8']);
 const fs = require('fs');
 
 const formRoutes = require('./routes/formRoutes');
 const responseRoutes = require('./routes/responseRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const authRoutes = require('./routes/registerandLoginRoutes')
 
 console.log("Server started at:", new Date().toISOString());
 console.log("PID:", process.pid);
@@ -45,7 +48,7 @@ mongoose.connect(MONGODB_URI)
 app.use('/api/forms', formRoutes);
 app.use('/api/responses', responseRoutes);
 app.use('/api/upload', uploadRoutes);
-
+app.use('/api/auth',authRoutes)
 // Single Page Application (SPA) Support for Angular
 // This catch-all route should be AFTER all API routes
 if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {

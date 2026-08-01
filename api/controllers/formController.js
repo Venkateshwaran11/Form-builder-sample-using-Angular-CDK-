@@ -18,6 +18,9 @@ exports.saveOrUpdateForm = async (req, res) => {
           displayName,
           config,
           updatedAt: Date.now()
+        },
+        $setOnInsert: {
+          createdAt: Date.now()
         }
       },
       { new: true, upsert: true }

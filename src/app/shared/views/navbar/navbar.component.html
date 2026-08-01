@@ -1,0 +1,26 @@
+<!-- Global Navbar -->
+<!-- <app-login (onLogin)="loginSuccess=true"></app-login> -->
+
+<nav class="global-navbar" *ngIf="!isViewerMode" >
+  <div class="brand" routerLink="/" style="cursor: pointer;">
+    <mat-icon>dynamic_form</mat-icon>
+    <span class="app-title">FormBuilder Pro</span>
+  </div>
+  
+  <div class="spacer" style="flex: 1;"></div>
+
+  <div class="nav-links" *ngIf="authService.currentUser()">
+    <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
+  </div>
+
+  <div class="user-profile" *ngIf="authService.currentUser()">
+    <div class="avatar" style="background:#e2e8f0; border-radius:50%; padding:5px; height:24px; width:24px; display:flex; align-items:center; justify-content:center; color:#64748b; margin-right:8px;">
+      <mat-icon>person</mat-icon>
+    </div>
+    <span style="font-weight:600; color:#334155; font-size:0.9rem; margin-right: 15px;">Welcome {{ authService.currentUser()?.['username'] }}!</span>
+    <button class="logout-btn" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      Logout
+    </button>
+  </div>
+</nav>

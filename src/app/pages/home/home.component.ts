@@ -44,6 +44,9 @@ export class HomeComponent implements OnInit {
     this.http.get<any[]>(`${this.apiUrl}/forms`).pipe(retry({
       count: 5,
       delay: (error) => {
+        if (error.status === 401 || error.status === 403) {
+          throw error;
+        }
         console.log('Retrying...', error.status);
         return timer(2000);
       }

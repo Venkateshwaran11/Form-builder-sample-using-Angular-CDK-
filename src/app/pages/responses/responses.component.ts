@@ -80,6 +80,6 @@ export class ResponsesComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/']);
+    this.router.navigate(['/dashboard']);
   }
 }

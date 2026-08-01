@@ -309,9 +309,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.id = '';
 
     // Explicitly update URL to clean out stale IDs if needed
-    if (!afterSave) {
+    // if (!afterSave) {
       this.router.navigate(['/builder/new']);
-    }
+    // }
   }
 
   saveConfig() {
@@ -330,6 +330,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
         this.isDirty = false;
         this.id = res._id; // Ensure we maintain ID after creation
         this.snackBar.open(`"${this.formDisplayName}" saved successfully!`, 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-success'] });
+        this.createNewForm(true);
       },
       error: (err) => {
         console.error('Error saving form:', err);

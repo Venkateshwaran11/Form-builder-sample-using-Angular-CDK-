@@ -56,6 +56,10 @@
                 <mat-icon>assignment</mat-icon>
                 <span>{{ form.responseCount || 0 }} Responses</span>
               </div>
+              <div class="stat-row" *ngIf="form.createdAt">
+                <mat-icon>calendar_today</mat-icon>
+                <span>Created: {{ form.createdAt | date:'mediumDate' }}</span>
+              </div>
               <div class="stat-row" *ngIf="form.updatedAt">
                 <mat-icon>update</mat-icon>
                 <span>Last Updated: {{ form.updatedAt | date:'mediumDate' }}</span>

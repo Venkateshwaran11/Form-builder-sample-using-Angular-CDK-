@@ -1,17 +1,59 @@
 <div class="login-container">
-    <div class="login-card">
-        <h2>Login</h2>
-        <form (ngSubmit)="login()">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" [(ngModel)]="userObject.email" id="email" name="email">
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" [(ngModel)]="userObject.password" id="password" name="password">
-            </div>
-            <button type="submit">Login</button>
-            <p>Don't have an account? <a href="#">Sign Up</a></p>
-        </form>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="brand-logo">
+        <mat-icon>dynamic_form</mat-icon>
+      </div>
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Log in to manage your forms</p>
     </div>
+
+    <form (ngSubmit)="login()">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <mat-icon class="input-icon">mail_outline</mat-icon>
+          <input 
+            type="email" 
+            [(ngModel)]="userObject.email" 
+            id="email" 
+            name="email" 
+            placeholder="name@example.com"
+            required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <mat-icon class="input-icon">lock_outline</mat-icon>
+          <input 
+            [type]="showPassword ? 'text' : 'password'" 
+            [(ngModel)]="userObject.password" 
+            id="password" 
+            name="password" 
+            placeholder="••••••••"
+            required>
+          <button 
+            type="button" 
+            class="toggle-password" 
+            (click)="showPassword = !showPassword"
+            aria-label="Toggle password visibility"
+            tabindex="-1">
+            <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="login-btn">
+        <span>Login</span>
+        <mat-icon class="btn-icon">arrow_forward</mat-icon>
+      </button>
+
+      <div class="login-footer">
+        <span>Don't have an account?</span>
+        <a href="#" class="signup-link">Sign Up</a>
+      </div>
+    </form>
+  </div>
 </div>
