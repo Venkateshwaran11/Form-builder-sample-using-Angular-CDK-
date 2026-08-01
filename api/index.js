@@ -4,8 +4,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dns = require('node:dns');
-dns.setServers(['1.1.1.1', '8.8.8.8']);
-const fs = require('fs');
+// dns.setServers(['1.1.1.1', '8.8.8.8']);
+// const fs = require('fs');
 
 const formRoutes = require('./_src/routes/formRoutes');
 const responseRoutes = require('./_src/routes/responseRoutes');
@@ -40,10 +40,12 @@ if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
 }
 
 // Database Connection
+async function connectDB(){
 await mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
-
+}
+await connectDB()
 // --- API ROUTES ---
 app.use('/api/forms', formRoutes);
 app.use('/api/responses', responseRoutes);
