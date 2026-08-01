@@ -3,9 +3,9 @@ const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const dns = require('node:dns');
+// const dns = require('node:dns');
 // dns.setServers(['1.1.1.1', '8.8.8.8']);
-// const fs = require('fs');
+const fs = require('fs');
 
 const formRoutes = require('./_src/routes/formRoutes');
 const responseRoutes = require('./_src/routes/responseRoutes');
