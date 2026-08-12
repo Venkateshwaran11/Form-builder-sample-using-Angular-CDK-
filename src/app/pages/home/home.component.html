@@ -37,8 +37,8 @@
       </div>
 
       <ng-container *ngIf="!isLoading">
-        <div class="form-grid" *ngIf="filteredForms().length > 0; else noForms">
-          <div class="form-card" *ngFor="let form of filteredForms()">
+        <div class="form-grid" *ngIf="forms().length > 0; else noForms">
+          <div class="form-card" *ngFor="let form of forms()">
             <div class="card-header">
               <mat-icon class="form-icon">description</mat-icon>
               <div class="card-title-group">

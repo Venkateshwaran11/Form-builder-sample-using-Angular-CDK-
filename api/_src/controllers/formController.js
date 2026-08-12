@@ -34,7 +34,16 @@ exports.saveOrUpdateForm = async (req, res) => {
 // Get All Form Definitions
 exports.getAllForms = async (req, res) => {
   try {
-    const forms = await Form.find().sort({ updatedAt: -1 }).lean();
+    let query = {};
+    if (req.query && req.query.name) {
+      query = {
+        $or: [
+          { name: { $regex: req.query.name, $options: 'i' } },
+          { displayName: { $regex: req.query.name, $options: 'i' } }
+        ]
+      };
+    }
+    const forms = await Form.find(query).sort({ updatedAt: -1 }).lean();
 
     const counts = await Response.aggregate([
       {

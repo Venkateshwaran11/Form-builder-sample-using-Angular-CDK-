@@ -1,11 +1,11 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
-import { retry, timer } from 'rxjs';
+import { BehaviorSubject, Subscription, debounce, retry, switchMap, timer } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -14,7 +14,7 @@ import { retry, timer } from 'rxjs';
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private router = inject(Router);
   apiUrl = environment.apiUrl;
@@ -22,37 +22,44 @@ export class HomeComponent implements OnInit {
   forms = signal<any[]>([]);
   searchQuery = signal<string>('');
   isLoading: boolean = true;
+  searchSubject = new BehaviorSubject<string>('');
+  private searchSubscription?: Subscription;
 
-  filteredForms = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    const allForms = this.forms();
-    if (!query) return allForms;
-    return allForms.filter(f =>
-      f.displayName?.toLowerCase().includes(query) ||
-      f.name?.toLowerCase().includes(query)
-    );
-  });
+  // filteredForms = computed(() => {
+  //   const query = this.searchQuery().toLowerCase();
+  //   const allForms = this.forms();
+  //   if (!query) return allForms;
 
-  formCount = computed(() => this.filteredForms().length);
+  //   return allForms.filter(f =>
+  //     f.displayName?.toLowerCase().includes(query) ||
+  //     f.name?.toLowerCase().includes(query)
+  //   );
+  // });
+
+  formCount = signal(0);
 
   ngOnInit() {
-    this.loadForms();
-  }
-
-  loadForms() {
-    this.isLoading = true;
-    this.http.get<any[]>(`${this.apiUrl}/forms`).pipe(retry({
-      count: 5,
-      delay: (error) => {
-        if (error.status === 401 || error.status === 403) {
-          throw error;
-        }
-        console.log('Retrying...', error.status);
-        return timer(2000);
-      }
-    })).subscribe({
+     this.searchSubject.pipe(
+      debounce((query) => (query === '' ? timer(0) : timer(300))),
+      switchMap((query) => {
+        this.isLoading = true;
+        return this.http.get<any[]>(`${this.apiUrl}/forms?name=${query}`).pipe(
+          retry({
+            count: 3,
+            delay: (error) => {
+              if (error.status === 401 || error.status === 403) {
+                throw error;
+              }
+              console.log('Retrying...', error.status);
+              return timer(2000);
+            }
+          })
+        );
+      })
+    ).subscribe({
       next: (data) => {
         this.forms.set(data || []);
+        this.formCount.set(this.forms().length);
         this.isLoading = false;
       },
       error: (err) => {
@@ -62,12 +69,18 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  loadForms() {
+    this.searchSubject.next(this.searchQuery());
+  }
+
   onSearchChange(value: string) {
     this.searchQuery.set(value);
+    this.searchSubject.next(value);
   }
 
   clearSearch() {
     this.searchQuery.set('');
+    this.searchSubject.next('');
   }
 
   createNewForm() {
@@ -97,6 +110,12 @@ export class HomeComponent implements OnInit {
         next: () => this.loadForms(),
         error: (err) => console.error('Error deleting form', err)
       });
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
     }
   }
 }

@@ -14,8 +14,9 @@
   </div>
 
   <div class="user-profile" *ngIf="authService.currentUser()">
-    <div class="avatar" style="background:#e2e8f0; border-radius:50%; padding:5px; height:24px; width:24px; display:flex; align-items:center; justify-content:center; color:#64748b; margin-right:8px;">
-      <mat-icon>person</mat-icon>
+    <div class="avatar" style="background:#e2e8f0; border-radius:50%; height:32px; width:32px; display:flex; align-items:center; justify-content:center; color:#64748b; margin-right:8px; overflow: hidden;">
+      <img *ngIf="authService.currentUser()?.['profileImage']" [src]="authService.currentUser()?.['profileImage']" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+      <mat-icon *ngIf="!authService.currentUser()?.['profileImage']" style="font-size: 20px; width: 20px; height: 20px;">person</mat-icon>
     </div>
     <span style="font-weight:600; color:#334155; font-size:0.9rem; margin-right: 15px;">Welcome {{ authService.currentUser()?.['username'] }}!</span>
     <button class="logout-btn" (click)="logout()">
