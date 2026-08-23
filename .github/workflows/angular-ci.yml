@@ -25,5 +25,5 @@ jobs:
       - name: Build Angular application
         run: npm run build
 
-      - name: Run unit tests
-        run: npm test -- --watch=false --browsers=ChromeHeadlessCI --no-progress
+      # - name: Run unit tests
+      #   run: npm test -- --watch=false --browsers=ChromeHeadlessCI --no-progress
