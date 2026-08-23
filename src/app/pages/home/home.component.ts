@@ -1,12 +1,14 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
-import { BehaviorSubject, Subscription, debounce, retry, switchMap, timer } from 'rxjs';
-
+import { BehaviorSubject, Subscription, debounce, firstValueFrom, retry, switchMap, timer } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -37,9 +39,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   // });
 
   formCount = signal(0);
-
+  destroy$ = inject(DestroyRef);
+  private dialog = inject(MatDialog);
   ngOnInit() {
-     this.searchSubject.pipe(
+     this.searchSubject.pipe(takeUntilDestroyed(this.destroy$),
       debounce((query) => (query === '' ? timer(0) : timer(300))),
       switchMap((query) => {
         this.isLoading = true;
@@ -103,14 +106,27 @@ export class HomeComponent implements OnInit, OnDestroy {
     window.open(url, '_blank');
   }
 
-  deleteForm(form: any, event: Event) {
+  async deleteForm(form: any, event: Event) {
     event.stopPropagation();
-    if (confirm(`Are you sure you want to delete ${form.displayName}?`)) {
-      this.http.delete(`${this.apiUrl}/forms/${form.name}`).subscribe({
-        next: () => this.loadForms(),
-        error: (err) => console.error('Error deleting form', err)
-      });
-    }
+        const result = this.dialog.open(ConfirmDialogComponent, {
+          data: {
+            title: 'Delete Form',
+            message: `Are you sure you want to delete this form: ${form.displayName}?`,
+            type: 'danger',
+            confirmText: 'Yes',
+            cancelText: 'No'
+          },
+          width: '440px',
+          disableClose: true,
+          panelClass: 'mat-dialog-clean'
+        })
+        const isConfirmed = await firstValueFrom(result.afterClosed());
+        if(isConfirmed){
+          this.http.delete(`${this.apiUrl}/forms/${form.name}`).subscribe({
+            next: () => this.loadForms(),
+            error: (err) => console.error('Error deleting form', err)
+          });
+        }
   }
 
   ngOnDestroy() {
