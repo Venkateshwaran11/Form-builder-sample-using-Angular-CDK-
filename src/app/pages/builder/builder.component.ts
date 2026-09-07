@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone, inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, NgZone, inject, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,7 +29,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
   private lastSeenMessageCount: number = 0;
   private flowiseEventTarget = window;
   private messageUpdateHandler: any;
-
+    @ViewChild('formCanvas') formCanvas!: ElementRef;
+  
   constructor(
     private snackBar: MatSnackBar,
     private ngZone: NgZone,
@@ -380,6 +381,17 @@ export class BuilderComponent implements OnInit, OnDestroy {
   onConfigChange(newConfig: FieldConfig[]) {
     this.formConfig = newConfig;
     this.isDirty = true;
+      setTimeout(() => {
+        if (this.formCanvas) {
+          const container = this.formCanvas.nativeElement;
+          console.log('Current Scroll:', container.scrollTop, 'Total Height:', container.scrollHeight);
+
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 50);
   }
   formBuilderSaveValidations(){
     if(this.formName === ''){

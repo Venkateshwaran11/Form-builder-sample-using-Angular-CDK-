@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter,ViewChildren, QueryList, ElementRef, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'app-dynamic-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule, DynamicFieldComponent, MatIconModule],
+  changeDetection:ChangeDetectionStrategy.OnPush,
   template: `
     <form class="dynamic-form" [class.view-form]="mode === 'view'" [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="form-header">
@@ -171,13 +172,12 @@ import { MatIconModule } from '@angular/material/icon';
           <div class="field-content" [class.blur]="editingIndex === i && mode === 'edit'">
             <app-dynamic-field [field]="field" [group]="form"></app-dynamic-field>
           </div>
-        </div>
+        </div>  
+      </div>
    <button type="submit" [disabled]="form.invalid" class="action-btn save-btn" *ngIf="mode === 'view'">
             <mat-icon>save</mat-icon>
             <span>Save</span>
           </button>
-      </div>
-
       <div class="submission-result" *ngIf="(jsonString | keyvalue).length > 0">
         <h3>✅ Form Successfully Submitted!</h3>
         <p style="margin-bottom: 15px; color: #94a3b8; font-size: 0.9rem; margin-top:0;">Here is the resulting JSON payload extracted natively from your dynamically generated form.</p>
@@ -360,6 +360,7 @@ import { MatIconModule } from '@angular/material/icon';
   `]
 })
 export class DynamicFormComponent implements OnInit, OnChanges {
+  @ViewChild('formCanvas') formCanvas!: ElementRef;
   @Input() config: FieldConfig[] = [];
   @Input() mode: 'edit' | 'view' = 'edit';
   @Input() formName: string = '';
@@ -449,15 +450,14 @@ export class DynamicFormComponent implements OnInit, OnChanges {
           : undefined
       };
 
-      // Add to config at exactly the dropped index
-      this.config.splice(event.currentIndex, 0, newField);
-
+      // Add to config at exactly the last index
+      this.config.splice(this.config.length, 0, newField);
       // Update reactive form
       const validators = newField.required ? [Validators.required] : [];
       this.form.addControl(newField.name, this.fb.control('', validators));
 
       // Automatically open the editor for this new field!
-      this.editingIndex = event.currentIndex;
+      this.editingIndex = this.config.length - 1;
     }
     this.configChange.emit(this.config);
   }
