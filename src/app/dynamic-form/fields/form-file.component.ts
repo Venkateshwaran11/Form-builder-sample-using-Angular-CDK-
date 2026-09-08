@@ -6,11 +6,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { FieldConfig } from '../models/field-config.interface';
 import { environment } from '../../../environments/environment';
 
-@Component({
+@Component(({
   selector: 'app-form-file',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatIconModule],
-  template: `
+  templateUrl: './form-file.component.html',
+  styleUrl: './form-file.component.css',
+  ['legacyTemplate']: `
     <div class="field-container" [formGroup]="group">
       <label [for]="field.name">{{ field.label }}<span *ngIf="field.required" class="req">*</span></label>
       
@@ -59,7 +61,7 @@ import { environment } from '../../../environments/environment';
       </div>
     </div>
   `,
-  styles: [`
+  ['legacyStyles']: [`
     .field-container { margin-bottom: 1rem; display: flex; flex-direction: column; }
     label { font-weight: 500; margin-bottom: 0.5rem; color: #374151; font-size: 0.9rem; }
     .req { color: #ef4444; margin-left: 0.2rem; }
@@ -111,7 +113,7 @@ import { environment } from '../../../environments/environment';
     
     .error-msg { color: #dc2626; font-size: 0.8rem; margin-top: 0.3rem; }
   `]
-})
+} as any))
 export class FormFileComponent implements OnInit {
   @Input() field!: FieldConfig;
   @Input() group!: FormGroup;

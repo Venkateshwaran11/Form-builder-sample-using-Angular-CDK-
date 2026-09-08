@@ -8,34 +8,8 @@ import flatpickr from 'flatpickr';
   selector: 'app-form-date',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  template: `
-    <div class="field-container" [formGroup]="group">
-      <label [for]="field.name">{{ field.label }}<span *ngIf="field.required" class="req">*</span></label>
-      
-      <div class="input-wrapper">
-        <input 
-          #dateInput
-          type="text"
-          [id]="field.name"
-          [placeholder]="field.label?'Enter '+field.label:'Select Date...'">
-        <span class="icon">📅</span>
-      </div>
-
-      <div class="error-msg" *ngIf="group.get(field.name)?.touched && group.get(field.name)?.invalid">
-        <span *ngIf="group.get(field.name)?.errors?.['required']">{{field.label}} is required.</span>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .field-container { margin-bottom: 1rem; display: flex; flex-direction: column; }
-    label { font-weight: 500; margin-bottom: 0.5rem; color: #374151; font-size: 0.9rem; }
-    .req { color: #ef4444; margin-left: 0.2rem; }
-    .input-wrapper { position: relative; display: flex; align-items: center; }
-    input { width: 100%; padding: 0.6rem 0.6rem 0.6rem 2.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; font-size: 0.9rem; }
-    input:focus { border-color: #3b82f6; outline: none; }
-    .icon { position: absolute; left: 0.6rem; color: #6b7280; font-size: 1rem; pointer-events: none; }
-    .error-msg { color: #dc2626; font-size: 0.8rem; margin-top: 0.3rem; }
-  `]
+  templateUrl: './form-date.component.html',
+  styleUrl: './form-date.component.css'
 })
 export class FormDateComponent implements AfterViewInit, OnDestroy {
   @Input() field!: FieldConfig;

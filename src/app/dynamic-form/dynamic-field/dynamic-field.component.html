@@ -1,0 +1,26 @@
+<ng-container [ngSwitch]="getComponentType(field.type)">
+      
+      <app-form-input *ngSwitchCase="'input'" 
+        [field]="field" [group]="group"></app-form-input>
+        
+      <app-form-select *ngSwitchCase="'select'" 
+        [field]="field" [group]="group"></app-form-select>
+        
+      <app-form-radio *ngSwitchCase="'radio'" 
+        [field]="field" [group]="group"></app-form-radio>
+        
+      <app-form-date *ngSwitchCase="'date'" 
+        [field]="field" [group]="group"></app-form-date>
+
+      <div *ngSwitchCase="'heading'" class="heading" [ngClass]="{
+        'align-left': field.headingTextAlignment === 'left',
+        'align-center': field.headingTextAlignment === 'center',
+        'align-right': field.headingTextAlignment === 'right'
+      }">
+        <mat-icon>view_headline </mat-icon>
+        <span>{{ field.label }}</span>
+      </div>
+
+      <app-form-file *ngSwitchCase="'file'"
+        [field]="field" [group]="group"></app-form-file>
+    </ng-container>

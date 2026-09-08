@@ -6,12 +6,14 @@ import { FieldConfig } from './models/field-config.interface';
 import { DynamicFieldComponent } from './dynamic-field/dynamic-field.component';
 import { MatIconModule } from '@angular/material/icon';
 
-@Component({
+@Component(({
   selector: 'app-dynamic-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule, DynamicFieldComponent, MatIconModule],
   changeDetection:ChangeDetectionStrategy.OnPush,
-  template: `
+  templateUrl: './dynamic-form.component.html',
+  styleUrl: './dynamic-form.component.css',
+  ['legacyTemplate']: `
     <form class="dynamic-form" [class.view-form]="mode === 'view'" [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="form-header">
         <div class="form-title-area">
@@ -186,7 +188,7 @@ import { MatIconModule } from '@angular/material/icon';
       </div>
     </form>
   `,
-  styles: [`
+  ['legacyStyles']: [`
   /* Form Submission Results Box */
 .submission-result { margin-top: 30px; background: #0f172a; color: #e2e8f0; padding: 25px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3); border: 1px solid #334155; }
 .submission-result h3 { margin-top: 0; color: #10b981; border-bottom: 1px solid #334155; padding-bottom: 15px; font-size: 1.3rem; }
@@ -358,7 +360,7 @@ import { MatIconModule } from '@angular/material/icon';
   border-color: #e2e8f0 !important;
 }
   `]
-})
+} as any))
 export class DynamicFormComponent implements OnInit, OnChanges {
   @ViewChild('formCanvas') formCanvas!: ElementRef;
   @Input() config: FieldConfig[] = [];

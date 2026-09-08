@@ -1,0 +1,17 @@
+<div class="dialog-container">
+  <mat-dialog-content class="dialog-body">
+    <div class="dialog-icon-wrap" [ngClass]="data.type || 'info'">
+      <mat-icon>{{ iconMap[data.type || 'info'] }}</mat-icon>
+    </div>
+    <h2 class="dialog-title">{{ data.title }}</h2>
+    <p class="dialog-message">{{ data.message }}</p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="center" class="dialog-actions">
+    <button mat-flat-button
+      [ngClass]="'btn-' + (data.type || 'info')"
+      (click)="dialogRef.close()">
+      {{ data.closeText || 'OK' }}
+    </button>
+  </mat-dialog-actions>
+</div>

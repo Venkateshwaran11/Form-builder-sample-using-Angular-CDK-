@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FieldConfig } from '../models/field-config.interface';
 
-@Component({
+@Component(({
   selector: 'app-form-input',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  template: `
+  templateUrl: './form-input.component.html',
+  styleUrl: './form-input.component.css',
+  ['legacyTemplate']: `
     <div class="field-container" [formGroup]="group">
       <label [for]="field.name">{{ field.label }}<span *ngIf="field.required" class="req">*</span></label>
       
@@ -52,7 +54,7 @@ import { FieldConfig } from '../models/field-config.interface';
       </div>
     </div>
   `,
-  styles: [`
+  ['legacyStyles']: [`
     .field-container { margin-bottom: 1rem; display: flex; flex-direction: column; }
     label { font-weight: 500; margin-bottom: 0.5rem; color: #374151; font-size: 0.9rem; }
     .req { color: #ef4444; margin-left: 0.2rem; }
@@ -60,7 +62,7 @@ import { FieldConfig } from '../models/field-config.interface';
     input:focus, textarea:focus { border-color: #3b82f6; outline: none; }
     .error-msg { color: #dc2626; font-size: 0.8rem; margin-top: 0.3rem; }
   `]
-})
+} as any))
 export class FormInputComponent {
   @Input() field!: FieldConfig;
   @Input() group!: FormGroup;
