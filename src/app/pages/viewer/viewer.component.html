@@ -1,0 +1,41 @@
+<div class="viewer-container">
+  <div class="viewer-card" *ngIf="!isSubmitted && !isLoading && !errorMessage">
+    <div class="form-header">
+      <mat-icon class="brand-icon">dynamic_form</mat-icon>
+      <h1 class="form-title">{{ formDisplayName }}</h1>
+      <p class="form-subtitle">Please fill out the form below</p>
+    </div>
+
+    <div class="form-body">
+      <app-dynamic-form
+        [config]="formConfig"
+        [mode]="'view'"
+        [formName]="formName"
+        [formDisplayName]="formDisplayName"
+        (submitForm)="onFormSubmit($event)">
+      </app-dynamic-form>
+    </div>
+  </div>
+
+  <div class="viewer-card success-card" *ngIf="isSubmitted">
+    <div class="success-icon">
+      <mat-icon>check_circle</mat-icon>
+    </div>
+    <h2>Thank You!</h2>
+    <p>Your response has been successfully submitted.</p>
+    <button class="return-btn" (click)="resetForm()">Submit another response</button>
+  </div>
+
+  <div class="viewer-card loading-card" *ngIf="isLoading">
+    <mat-icon class="spin-icon">autorenew</mat-icon>
+    <p>Loading form...</p>
+  </div>
+
+  <div class="viewer-card error-card" *ngIf="errorMessage">
+    <mat-icon>error_outline</mat-icon>
+    <h2>Error</h2>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div class="watermark">Powered by FormBuilder Pro</div>
+</div>

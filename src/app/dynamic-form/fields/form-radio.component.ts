@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FieldConfig } from '../models/field-config.interface';
 
-@Component({
+@Component(({
   selector: 'app-form-radio',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  template: `
+  templateUrl: './form-radio.component.html',
+  styleUrl: './form-radio.component.css',
+  ['legacyTemplate']: `
     <div class="field-container" [formGroup]="group">
       <label class="group-label">{{ field.label }}<span *ngIf="field.required" class="req">*</span></label>
       
@@ -43,7 +45,7 @@ import { FieldConfig } from '../models/field-config.interface';
       </div>
     </div>
   `,
-  styles: [`
+  ['legacyStyles']: [`
     .field-container { margin-bottom: 1rem; display: flex; flex-direction: column; }
     .group-label { font-weight: 500; margin-bottom: 0.5rem; color: #374151; font-size: 0.9rem; }
     .req { color: #ef4444; margin-left: 0.2rem; }
@@ -61,7 +63,7 @@ import { FieldConfig } from '../models/field-config.interface';
     
     .error-msg { color: #dc2626; font-size: 0.8rem; margin-top: 0.3rem; }
   `]
-})
+} as any))
 export class FormRadioComponent {
   @Input() field!: FieldConfig;
   @Input() group!: FormGroup;

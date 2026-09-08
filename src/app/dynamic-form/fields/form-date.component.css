@@ -1,0 +1,51 @@
+.field-container {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #374151;
+    font-size: 0.9rem;
+}
+
+.req {
+    color: #ef4444;
+    margin-left: 0.2rem;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+input {
+    width: 100%;
+    padding: 0.6rem 0.6rem 0.6rem 2.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+input:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+.icon {
+    position: absolute;
+    left: 0.6rem;
+    color: #6b7280;
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.error-msg {
+    color: #dc2626;
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+}

@@ -1,0 +1,60 @@
+<form class="dynamic-form" [class.view-form]="mode === 'view'" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="form-header">
+    <div class="form-title-area">
+      <ng-container *ngIf="mode === 'edit'; else viewHeader">
+        <div class="form-title-editor">
+          <input type="text" [ngModel]="formDisplayName" (ngModelChange)="updateFormDisplayName($event)" [ngModelOptions]="{standalone: true}" class="title-input" placeholder="Form Display Name" title="Edit Form Display Name">
+          <div class="form-name-row">
+            <label>Form ID:</label>
+            <input type="text" [ngModel]="formName" (ngModelChange)="updateFormName($event)" [ngModelOptions]="{standalone: true}" class="name-input disabled" placeholder="form_id" title="Auto-generated Form ID Key" disabled="">
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #viewHeader>
+        <h3 class="view-title">{{ formDisplayName }}</h3>
+        <p class="form-id-display">ID: {{ formName }}</p>
+      </ng-template>
+    </div>
+    <div class="header-actions">
+      <button type="button" [disabled]="config.length===0" class="action-btn generate-btn" *ngIf="mode === 'edit'" (click)="generateInternalJson()" [ngClass]="config.length===0?'disabled':''">
+        <mat-icon>description</mat-icon>
+        <span>Export JSON</span>
+      </button>
+    </div>
+  </div>
+
+  <div cdkDropList class="field-list" [class.view-list]="mode === 'view'" [cdkDropListDisabled]="mode === 'view'" [cdkDropListData]="config" (cdkDropListDropped)="drop($event)">
+    <div class="canvas-empty-state" *ngIf="config.length === 0 && mode === 'edit'">
+      <div class="empty-icon-wrapper"><mat-icon class="empty-icon">add_task</mat-icon></div>
+      <h4 class="empty-title">Your canvas is empty</h4>
+      <p class="empty-subtitle">Drag and drop fields from the left sidebar to start building your dynamic form.</p>
+      <div class="empty-hint"><mat-icon style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle;">tips_and_updates</mat-icon><span>Hint: You can reorder fields by dragging them.</span></div>
+    </div>
+
+    <div class="field-box" [class.view-box]="mode === 'view'" *ngFor="let field of config; let i = index" cdkDrag [cdkDragDisabled]="mode === 'view'" [style.flex]="(editingIndex === i && mode === 'edit') ? '0 0 100%' : '0 0 ' + getFlexWidth(field.width)">
+      <div class="drag-handle" *ngIf="mode === 'edit'" cdkDragHandle>
+        <span class="handle-icon">⠿</span>
+        <span class="field-name"><span class="name-text" [title]="field.label">{{ field.label }}</span><span class="field-badges"><small class="key-display" [title]="field.name">(Key: {{field.name}})</small><small class="type-badge">{{ getTypeLabel(field.type) }}</small></span></span>
+        <button type="button" class="btn-icon edit-btn" (click)="toggleEdit(i)" title="Edit Properties"><mat-icon>edit </mat-icon></button>
+        <button type="button" class="btn-icon remove-btn" (click)="removeField(i)" title="Remove Field"><mat-icon>delete</mat-icon></button>
+      </div>
+
+      <div class="property-editor" *ngIf="editingIndex === i && mode === 'edit'">
+        <h4 style="margin-top:0; font-size:1rem; color:#1e293b;">Field Properties</h4>
+        <div class="editor-row"><label>Field Label:</label><input type="text" [ngModel]="field.label" (ngModelChange)="updateLabel(i, $event)" [ngModelOptions]="{standalone: true}" class="editor-input"></div>
+        <div class="editor-row"><label>JSON Key (Name):</label><input type="text" [ngModel]="field.name" disabled="" (ngModelChange)="updateFieldName(i, $event)" [ngModelOptions]="{standalone: true}" class="editor-input disabled"></div>
+        <div class="editor-row"><label>Field Width:</label><select [(ngModel)]="field.width" (ngModelChange)="configChange.emit(config)" [ngModelOptions]="{standalone: true}" class="editor-input"><option value="100%">100% (Full Row)</option><option value="50%">50% (Half Row)</option><option value="33%">33% (One Third)</option><option value="25%">25% (One Quarter)</option></select></div>
+        <div class="editor-row" *ngIf="field.type !== 'heading'"><label class="checkbox-label"><input type="checkbox" [(ngModel)]="field.required" (ngModelChange)="updateRequired(i, $event)" [ngModelOptions]="{standalone: true}">Required Field</label></div>
+        <div class="editor-row options-editor" *ngIf="field.type === 'dropdown' || field.type === 'multiselect' || field.type === 'radio'"><label>Options:</label><div class="options-list"><div *ngFor="let opt of field.options; let j = index" class="option-row"><input type="text" [(ngModel)]="opt.label" [ngModelOptions]="{standalone: true}" placeholder="Display Label"><input type="text" [(ngModel)]="opt.value" [ngModelOptions]="{standalone: true}" placeholder="JSON Value"><button type="button" class="btn-icon remove-btn sm" (click)="removeOption(field, j)" title="Remove Option">&times;</button></div><button type="button" class="add-btn sm" (click)="addOption(field)">+ Add Option</button></div></div>
+        <div class="editor-row options-editor" *ngIf="field.type === 'number'"><label>Min / Max:</label><div class="options-list"><div class="option-row"><input type="number" [(ngModel)]="field.min" [ngModelOptions]="{standalone: true}" placeholder="Min Value"><input type="number" [(ngModel)]="field.max" [ngModelOptions]="{standalone: true}" placeholder="Max Value"></div></div></div>
+        <div class="editor-row options-editor" *ngIf="field.type === 'decimal' || field.type === 'currency'"><label>Decimal Precision:</label><div class="options-list"><div class="option-row"><input type="number" [(ngModel)]="field.precision" [ngModelOptions]="{standalone: true}" placeholder="Precision"></div></div></div>
+        <div class="editor-row options-editor" *ngIf="field.type === 'currency'"><label>Choose a Currency:</label><div class="options-list"><div class="option-row"><select [(ngModel)]="field.currency" [ngModelOptions]="{standalone: true}" class="editor-input"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="INR">INR</option></select></div></div></div>
+        <div class="editor-row" *ngIf="field.type === 'heading'"><label>Text Alignment:</label><div class="alignment-options"><button type="button" [class.active]="field.headingTextAlignment === 'left'" (click)="field.headingTextAlignment = 'left'"><mat-icon>format_align_left</mat-icon></button><button type="button" [class.active]="field.headingTextAlignment === 'center'" (click)="field.headingTextAlignment = 'center'"><mat-icon>format_align_center</mat-icon></button><button type="button" [class.active]="field.headingTextAlignment === 'right'" (click)="field.headingTextAlignment = 'right'"><mat-icon>format_align_right</mat-icon></button></div></div>
+        <div class="editor-actions" [class.blur]="field.label === '' || field.name === ''"><button type="button" class="save-btn" (click)="toggleEdit(null)">Done Editing</button></div>
+      </div>
+      <div class="field-content" [class.blur]="editingIndex === i && mode === 'edit'"><app-dynamic-field [field]="field" [group]="form"></app-dynamic-field></div>
+    </div>
+  </div>
+  <button type="submit" [disabled]="form.invalid" class="action-btn save-btn" *ngIf="mode === 'view'"><mat-icon>save</mat-icon><span>Save</span></button>
+  <div class="submission-result" *ngIf="(jsonString | keyvalue).length > 0"><h3>✅ Form Successfully Submitted!</h3><p style="margin-bottom: 15px; color: #94a3b8; font-size: 0.9rem; margin-top:0;">Here is the resulting JSON payload extracted natively from your dynamically generated form.</p><pre>{{ jsonString | json }}</pre><button class="toggle-btn" style="background:#ef4444; margin-top: 15px;" (click)="jsonString = {}">Clear Results</button></div>
+</form>

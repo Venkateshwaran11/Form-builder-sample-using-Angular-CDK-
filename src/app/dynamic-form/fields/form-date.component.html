@@ -1,0 +1,16 @@
+<div class="field-container" [formGroup]="group">
+  <label [for]="field.name">{{ field.label }}<span *ngIf="field.required" class="req">*</span></label>
+
+  <div class="input-wrapper">
+    <input
+      #dateInput
+      type="text"
+      [id]="field.name"
+      [placeholder]="field.label?'Enter '+field.label:'Select Date...'">
+    <span class="icon">📅</span>
+  </div>
+
+  <div class="error-msg" *ngIf="group.get(field.name)?.touched && group.get(field.name)?.invalid">
+    <span *ngIf="group.get(field.name)?.errors?.['required']">{{field.label}} is required.</span>
+  </div>
+</div>
