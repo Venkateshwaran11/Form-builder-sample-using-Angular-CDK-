@@ -1,10 +1,11 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter,ViewChildren, QueryList, ElementRef, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter,ViewChildren, QueryList, ElementRef, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FieldConfig } from './models/field-config.interface';
 import { DynamicFieldComponent } from './dynamic-field/dynamic-field.component';
 import { MatIconModule } from '@angular/material/icon';
+import { BuilderTools } from '../shared/tools/builderTools';
 
 @Component(({
   selector: 'app-dynamic-form',
@@ -370,6 +371,7 @@ export class DynamicFormComponent implements OnInit, OnChanges {
 
   @Output() submitForm = new EventEmitter<any>();
   @Output() configChange = new EventEmitter<FieldConfig[]>();
+  @Output() toolOpen = new EventEmitter<void>()
   @Output() formNameChange = new EventEmitter<string>();
   @Output() formDisplayNameChange = new EventEmitter<string>();
   @Output() toggleMode = new EventEmitter<void>();
@@ -378,6 +380,7 @@ export class DynamicFormComponent implements OnInit, OnChanges {
   editingIndex: number | null = null;
   jsonString: any = {};
 
+  viewConfiguration = signal(false)
   constructor(private fb: FormBuilder) { }
 
   ngOnInit() {
@@ -427,6 +430,9 @@ export class DynamicFormComponent implements OnInit, OnChanges {
   }
 
   drop(event: CdkDragDrop<any[]>) {
+    if(this.editingIndex!=null){
+      return
+    }
     if (event.previousContainer === event.container) {
       // Reordering fields inside the canvas
       moveItemInArray(this.config, event.previousIndex, event.currentIndex);
@@ -436,7 +442,6 @@ export class DynamicFormComponent implements OnInit, OnChanges {
 
       const newFieldType = tool.type;
       const baseName = tool.label.toLowerCase().replace(/[^a-z0-9]/g, ''); //`field_${new Date().getTime()}`;
-
       const newField: FieldConfig = {
         type: newFieldType,
         name: baseName,
@@ -626,4 +631,51 @@ export class DynamicFormComponent implements OnInit, OnChanges {
   toggleModeRequest() {
     this.toggleMode.emit();
   }
+  viewOrHideConfigurations(){
+    this.viewConfiguration.set(!this.viewConfiguration());
+    if(this.viewConfiguration()){
+      this.toolOpen.emit()
+    }
+  }
+
+  builderToolsService = inject( BuilderTools);
+  // Make the signal available to the template
+  tools = this.builderToolsService.availableTools;
+
+  onToolClick(builderTool:any) {
+    console.log('Selected tool:', builderTool);
+    // Add logic to add the field to your canvas
+    this.viewOrHideConfigurations()
+      const tool = builderTool
+
+      const newFieldType = tool.type;
+      const baseName = tool.label.toLowerCase().replace(/[^a-z0-9]/g, ''); //`field_${new Date().getTime()}`;
+
+      const newField: FieldConfig = {
+        type: newFieldType,
+        name: baseName,
+        label: `New ${tool.label}`,
+        placeholder: `Enter ${tool.label}...`,
+        required: false,
+        width: '100%',
+        options: (newFieldType === 'dropdown' || newFieldType === 'radio' || newFieldType === 'multiselect')
+          ? [
+            { label: 'Option A', value: 'a' },
+            { label: 'Option B', value: 'b' }
+          ]
+          : undefined
+      };
+
+      // Add to config at exactly the last index
+      this.config.splice(this.config.length, 0, newField);
+      // Update reactive form
+      const validators = newField.required ? [Validators.required] : [];
+      this.form.addControl(newField.name, this.fb.control('', validators));
+
+      // Automatically open the editor for this new field!
+      this.editingIndex = this.config.length - 1;
+    this.configChange.emit(this.config)
+
+  }
+  
 }

@@ -279,7 +279,27 @@
 .field-box:hover {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
+.show-input-types{
+    /* display: none; */
+    opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease-in-out;
+  display: flex;
+    margin-left: auto;
+}
+/* .field-box:hover .show-input-types {
+    opacity: 1;
+    visibility: visible;
+} */
+.field-box:not(:last-child) .show-input-types {
+    display: none; 
+}
 
+/* 3. Reveal the button ONLY when hovering over the LAST .field-box */
+.field-box:last-child:hover .show-input-types {
+    opacity: 1;
+    visibility: visible;
+}
 .drag-handle {
     background: #f1f5f9;
     padding: 8px 10px;
@@ -614,4 +634,95 @@
     background-color: #e2e8f0 !important;
     color: #94a3b8 !important;
     border-color: #e2e8f0 !important;
+}
+/* Container for the whole "Select a new field" section */
+.new-field-options {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+.new-field-options .section-title {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Responsive grid for the buttons */
+.tools-grid {
+  display: grid;
+  /* Automatically fits as many 120px buttons as possible per row */
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+/* Style the buttons to look like clickable cards */
+.tools-grid .tool-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  color: #334155;
+}
+
+.tools-grid .tool-button:hover {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.tools-grid .material-icons {
+  font-size: 24px;
+}
+
+.tools-grid .tool-label {
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+/* Flex layout to push items to opposite ends */
+.options-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Reset the title margin since the wrapper handles spacing now */
+.options-header .section-title {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Style the close button to look neat and clickable */
+.close-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: #fee2e2; /* Subtle red hover background */
+  color: #ef4444;            /* Red text on hover */
 }
