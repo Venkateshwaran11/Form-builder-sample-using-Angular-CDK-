@@ -110,7 +110,8 @@
         (submitForm)="onFormSubmit($event)"
         (toggleMode)="toggleMode()"
         (configChange)="onConfigChange($event)"
-        (toolOpen)="onToolOpen()">
+        (toolOpen)="onToolOpen()"
+        (editStatusChange)="isFieldEditing=$event">
       </app-dynamic-form>
 
       <!-- Render the submitted form data natively for the user -->
