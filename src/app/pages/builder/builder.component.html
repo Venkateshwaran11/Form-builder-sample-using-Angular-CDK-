@@ -65,8 +65,8 @@
       </div>
       
       <div class="sidebar-content" [ngSwitch]="activeTab">
-        <div cdkDropList [cdkDropListData]="availableTools" class="tool-list" *ngSwitchCase="'tab1'">
-          <div class="tool-card" *ngFor="let tool of availableTools" cdkDrag [cdkDragData]="tool">
+        <div cdkDropList [cdkDropListData]="builderTools.availableTools()" class="tool-list" *ngSwitchCase="'tab1'">
+          <div class="tool-card" *ngFor="let tool of builderTools.availableTools()" cdkDrag [cdkDragData]="tool">
             <div class="tool-drag-preview" *cdkDragPreview>
               <mat-icon style="font-size: 20px; width: 20px; height: 20px;">{{tool.icon}}</mat-icon>
               <span>{{tool.label}}</span>
@@ -109,7 +109,8 @@
         [(formDisplayName)]="formDisplayName"
         (submitForm)="onFormSubmit($event)"
         (toggleMode)="toggleMode()"
-        (configChange)="onConfigChange($event)">
+        (configChange)="onConfigChange($event)"
+        (toolOpen)="onToolOpen()">
       </app-dynamic-form>
 
       <!-- Render the submitted form data natively for the user -->

@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { exhaustMap, firstValueFrom, tap } from 'rxjs';
-
+import {BuilderTools} from '../../shared/tools/builderTools';
 import { DynamicFormComponent } from '../../dynamic-form/dynamic-form.component';
 import { FieldConfig } from '../../dynamic-form/models/field-config.interface';
 import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog/confirm-dialog.component';
@@ -36,7 +36,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
     private ngZone: NgZone,
     private dialog: MatDialog,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    public builderTools: BuilderTools
   ) { }
 
   ngOnInit(): void {
@@ -380,8 +381,22 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   onConfigChange(newConfig: FieldConfig[]) {
     this.formConfig = newConfig;
+    console.log("384",this.formConfig)
     this.isDirty = true;
       setTimeout(() => {
+        if (this.formCanvas) {
+          const container = this.formCanvas.nativeElement;
+          console.log('Current Scroll:', container.scrollTop, 'Total Height:', container.scrollHeight);
+
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 50);
+  }
+  onToolOpen(){
+    setTimeout(() => {
         if (this.formCanvas) {
           const container = this.formCanvas.nativeElement;
           console.log('Current Scroll:', container.scrollTop, 'Total Height:', container.scrollHeight);

@@ -52,9 +52,31 @@
         <div class="editor-row" *ngIf="field.type === 'heading'"><label>Text Alignment:</label><div class="alignment-options"><button type="button" [class.active]="field.headingTextAlignment === 'left'" (click)="field.headingTextAlignment = 'left'"><mat-icon>format_align_left</mat-icon></button><button type="button" [class.active]="field.headingTextAlignment === 'center'" (click)="field.headingTextAlignment = 'center'"><mat-icon>format_align_center</mat-icon></button><button type="button" [class.active]="field.headingTextAlignment === 'right'" (click)="field.headingTextAlignment = 'right'"><mat-icon>format_align_right</mat-icon></button></div></div>
         <div class="editor-actions" [class.blur]="field.label === '' || field.name === ''"><button type="button" class="save-btn" (click)="toggleEdit(null)">Done Editing</button></div>
       </div>
-      <div class="field-content" [class.blur]="editingIndex === i && mode === 'edit'"><app-dynamic-field [field]="field" [group]="form"></app-dynamic-field></div>
+      <div class="field-content" [class.blur]="editingIndex === i && mode === 'edit'"><app-dynamic-field [field]="field" [group]="form"></app-dynamic-field>
+      <button class="show-input-types btn-icon add-btn" type="button" title="Add new Field" (click)="viewOrHideConfigurations()">+</button></div>
     </div>
   </div>
+  @if(viewConfiguration()){
+   <div class="new-field-options">
+  <div class="options-header">
+    <p class="section-title">Select a new field</p>
+    <button type="button" class="close-btn" (click)="viewOrHideConfigurations()">Close</button>
+  </div>
+  <div class="tools-grid">
+    @for (tool of tools(); track tool.type) {
+      <button 
+        class="tool-button" 
+        [title]="tool.label"
+        (click)="onToolClick(tool)" 
+        type="button"
+      >
+        <span class="material-icons">{{ tool.icon }}</span>
+        <span class="tool-label">{{ tool.label }}</span>
+      </button>
+    }
+  </div>
+</div>
+  }
   <button type="submit" [disabled]="form.invalid" class="action-btn save-btn" *ngIf="mode === 'view'"><mat-icon>save</mat-icon><span>Save</span></button>
   <div class="submission-result" *ngIf="(jsonString | keyvalue).length > 0"><h3>✅ Form Successfully Submitted!</h3><p style="margin-bottom: 15px; color: #94a3b8; font-size: 0.9rem; margin-top:0;">Here is the resulting JSON payload extracted natively from your dynamically generated form.</p><pre>{{ jsonString | json }}</pre><button class="toggle-btn" style="background:#ef4444; margin-top: 15px;" (click)="jsonString = {}">Clear Results</button></div>
 </form>
