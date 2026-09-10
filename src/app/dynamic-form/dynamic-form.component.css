@@ -106,6 +106,15 @@
     cursor: not-allowed;
     transform: none;
 }
+.save-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
 
 .form-title-editor {
     display: flex;

@@ -6,6 +6,10 @@ import { FieldConfig } from './models/field-config.interface';
 import { DynamicFieldComponent } from './dynamic-field/dynamic-field.component';
 import { MatIconModule } from '@angular/material/icon';
 import { BuilderTools } from '../shared/tools/builderTools';
+import { AlertDialogComponent } from '../shared/dialogs/alert-dialog/alert-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../shared/dialogs/confirm-dialog/confirm-dialog.component';
+import { firstValueFrom } from 'rxjs';
 
 @Component(({
   selector: 'app-dynamic-form',
@@ -375,13 +379,14 @@ export class DynamicFormComponent implements OnInit, OnChanges {
   @Output() formNameChange = new EventEmitter<string>();
   @Output() formDisplayNameChange = new EventEmitter<string>();
   @Output() toggleMode = new EventEmitter<void>();
+  @Output() editStatusChange = new EventEmitter<boolean>();
 
   form!: FormGroup;
   editingIndex: number | null = null;
   jsonString: any = {};
 
   viewConfiguration = signal(false)
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: FormBuilder,private dialog:MatDialog) { }
 
   ngOnInit() {
     const savedConfig = localStorage.getItem('dynamicFormConfig');
@@ -431,6 +436,16 @@ export class DynamicFormComponent implements OnInit, OnChanges {
 
   drop(event: CdkDragDrop<any[]>) {
     if(this.editingIndex!=null){
+      this.dialog.open(AlertDialogComponent,{
+        data:{
+          title:'Error',
+          message:'Kindly save the last field before dropping a new field to the canvas',
+          type:'error'
+        },
+          width: '420px',
+          disableClose: false,
+          panelClass: 'mat-dialog-clean'
+      })
       return
     }
     if (event.previousContainer === event.container) {
@@ -466,15 +481,36 @@ export class DynamicFormComponent implements OnInit, OnChanges {
       // Automatically open the editor for this new field!
       this.editingIndex = this.config.length - 1;
     }
+    this.editStatusChange.emit(this.editingIndex!==null);
     this.configChange.emit(this.config);
   }
 
-  toggleEdit(index: number | null) {
-    if(this.editingIndex!==null && this.editingIndex!==undefined){
+  toggleEdit(index: number | null, field?: any) {
+    if (this.editingIndex !== null && this.editingIndex !== undefined) {
       this.config[this.editingIndex].isEditing = false;
     }
-    console.log(this.config)
+    if (field?.name) {
+      // Check if another row already uses this name
+      const isDuplicate = this.config.filter(data => data.name === field.name).length > 1
+
+      if (isDuplicate) {
+        this.dialog.open(AlertDialogComponent, {
+          data: {
+            title: 'Error',
+            message: `${field.label} already exists. Kindly change the label `,
+            type: 'error'
+          },
+          width: '420px',
+          disableClose: false,
+          panelClass: 'mat-dialog-clean'
+        });
+        console.warn(`The name "${field.name}" is already taken!`);
+        return;
+      }
+    }
+
     this.editingIndex = index;
+    this.editStatusChange.emit(this.editingIndex!==null);
   }
 
   updateLabel(index: number, newLabel: string) {
@@ -567,18 +603,32 @@ export class DynamicFormComponent implements OnInit, OnChanges {
     return typeMap[type] ?? type;
   }
 
-  removeField(index: number) {
-    const fieldName = this.config[index].name;
-    this.form.removeControl(fieldName);
+  async removeField(index: number) {
+    const result = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete a Field',
+        message: `Are you sure you want to delete ${this.config[index].label} field? `,
+        type: 'warning',
+        confirmText: 'Yes',
+        cancelText: 'No'
+      },
+      width: '440px',
+      disableClose: true,
+      panelClass: 'mat-dialog-clean'
+    })
+    const isConfirmed = await firstValueFrom(result.afterClosed());
+    if (isConfirmed) {
+      const fieldName = this.config[index].name;
+      this.form.removeControl(fieldName);
 
-    this.config = this.config.filter((_, i) => i !== index);
-    if (this.editingIndex === index) {
-      this.editingIndex = null;
-    } else if (this.editingIndex !== null && this.editingIndex > index) {
-      this.editingIndex--;
+      this.config = this.config.filter((_, i) => i !== index);
+      if (this.editingIndex === index) {
+        this.editingIndex = null;
+      } else if (this.editingIndex !== null && this.editingIndex > index) {
+        this.editingIndex--;
+      }
+      this.configChange.emit(this.config);
     }
-
-    this.configChange.emit(this.config);
   }
 
   addOption(field: FieldConfig) {

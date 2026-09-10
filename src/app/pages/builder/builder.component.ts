@@ -29,6 +29,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
   private lastSeenMessageCount: number = 0;
   private flowiseEventTarget = window;
   private messageUpdateHandler: any;
+
+  public isFieldEditing:boolean = false
     @ViewChild('formCanvas') formCanvas!: ElementRef;
   
   constructor(
@@ -415,6 +417,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
     }
     if(this.formConfig.length === 0){
       this.openAlert('Error', 'Form is empty', 'error');
+      return false;
+    }
+    if(this.isFieldEditing){
+      this.openAlert('Error','Kindly complete the field configuration','error');
       return false;
     }
     return true;
