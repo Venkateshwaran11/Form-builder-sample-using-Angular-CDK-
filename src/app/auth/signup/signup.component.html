@@ -1,0 +1,98 @@
+<div class="signup-container">
+  <div class="signup-card">
+    <div class="signup-header">
+      <div class="brand-logo">
+        <mat-icon>dynamic_form</mat-icon>
+      </div>
+      <h2>Create Account</h2>
+      <p class="subtitle">Start creating your forms and collect responses today</p>
+    </div>
+
+    <form [formGroup]="formGroup" (ngSubmit)="signUp()">
+      <!-- Username -->
+      <div class="form-group">
+        <label for="username">Username</label>
+        <div class="input-wrapper" [class.has-error]="formGroup.get('username')?.invalid && formGroup.get('username')?.touched">
+          <mat-icon class="input-icon">person_outline</mat-icon>
+          <input 
+            type="text" 
+            id="username" 
+            formControlName="username" 
+            placeholder="johndoe" 
+            autocomplete="username"
+            required>
+        </div>
+        <div class="error-feedback" *ngIf="formGroup.get('username')?.invalid && formGroup.get('username')?.touched">
+          <span *ngIf="formGroup.get('username')?.errors?.['required']">Username is required</span>
+          <span *ngIf="formGroup.get('username')?.errors?.['minlength']">Username must be at least 3 characters</span>
+        </div>
+      </div>
+
+      <!-- Email Address -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper" [class.has-error]="formGroup.get('email')?.invalid && formGroup.get('email')?.touched">
+          <mat-icon class="input-icon">mail_outline</mat-icon>
+          <input 
+            type="email" 
+            id="email" 
+            formControlName="email" 
+            placeholder="name@example.com" 
+            autocomplete="email"
+            required>
+        </div>
+        <div class="error-feedback" *ngIf="formGroup.get('email')?.invalid && formGroup.get('email')?.touched">
+          <span *ngIf="formGroup.get('email')?.errors?.['required']">Email is required</span>
+          <span *ngIf="formGroup.get('email')?.errors?.['email']">Please enter a valid email address</span>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper" [class.has-error]="formGroup.get('password')?.invalid && formGroup.get('password')?.touched">
+          <mat-icon class="input-icon">lock_outline</mat-icon>
+          <input 
+            [type]="showPassword ? 'text' : 'password'" 
+            id="password" 
+            formControlName="password" 
+            placeholder="••••••••" 
+            autocomplete="new-password"
+            required>
+          <button 
+            type="button" 
+            class="toggle-password" 
+            (click)="togglePasswordVisibility()" 
+            aria-label="Toggle password visibility"
+            tabindex="-1">
+            <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </div>
+        <div class="error-feedback" *ngIf="formGroup.get('password')?.invalid && formGroup.get('password')?.touched">
+          <span *ngIf="formGroup.get('password')?.errors?.['required']">Password is required</span>
+          <span *ngIf="formGroup.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+        </div>
+      </div>
+
+      <!-- Email credentials notification -->
+      <div class="email-notice">
+        <mat-icon class="notice-icon">mark_email_read</mat-icon>
+        <span>Your login credentials will be emailed to your inbox upon registration.</span>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="signup-btn" [disabled]="isLoading">
+        <mat-icon class="spin-icon" *ngIf="isLoading">sync</mat-icon>
+        <span *ngIf="!isLoading">Create Account</span>
+        <span *ngIf="isLoading">Creating Account...</span>
+        <mat-icon class="btn-icon" *ngIf="!isLoading">arrow_forward</mat-icon>
+      </button>
+
+      <!-- Footer -->
+      <div class="signup-footer">
+        <span>Already have an account?</span>
+        <a routerLink="/" class="login-link">Log In</a>
+      </div>
+    </form>
+  </div>
+</div>
