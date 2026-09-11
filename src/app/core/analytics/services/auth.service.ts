@@ -19,8 +19,11 @@ export class AuthService {
         }
     }
 
-    setUser(user: any) {
+    setUser(user: any):void {
         this.currentUser.set(user);
+    }
+    getUserid():string{
+       return this.currentUser()?._id??null;
     }
 
     logout() {

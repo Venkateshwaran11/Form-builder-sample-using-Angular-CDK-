@@ -415,7 +415,10 @@ export class DynamicFormComponent implements OnInit, OnChanges {
 
   createForm() {
     const group = this.fb.group({});
-    this.config.forEach(field => {
+    for (let field of this.config) {
+      if (field.type==='heading'){
+        continue;
+      }
       let validators: any[] = [];
       if (field.validations) {
         validators = validators.concat(field.validations);
@@ -423,14 +426,14 @@ export class DynamicFormComponent implements OnInit, OnChanges {
       if (field.required) {
         validators.push(Validators.required);
       }
-      if(field.min){
+      if (field.min) {
         validators.push(Validators.min(field.min));
       }
-      if(field.max){
+      if (field.max) {
         validators.push(Validators.max(field.max));
       }
       group.addControl(field.name, this.fb.control((field.value !== undefined && field.value !== null) ? field.value : '', validators.length > 0 ? validators : null));
-    });
+    }
     this.form = group;
   }
 
