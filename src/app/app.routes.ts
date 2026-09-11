@@ -26,6 +26,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/responses/responses.component').then(m => m.ResponsesComponent),
     canActivate: [authGuardGuard] 
   },
+  {
+    path:'Sign-up',
+    loadComponent: ()=>import('./auth/signup/signup.component').then(m=>m.SignupComponent)
+  },
   { path: 'f/:id', loadComponent: () => import('./pages/viewer/viewer.component').then(m => m.ViewerComponent) },
   { path: '**', redirectTo: '' }
 ];
