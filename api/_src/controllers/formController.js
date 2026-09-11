@@ -4,7 +4,7 @@ const Response = require('../models/Response');
 // Save or Update a Form Config
 exports.saveOrUpdateForm = async (req, res) => {
   try {
-    const { name, displayName, config, _id } = req.body;
+    const { name, displayName, config, _id, createdBy } = req.body;
     const filter = _id ? { _id } : { name };
     const isExistingForm = await Form.find({ name: name });
     if (isExistingForm.length > 0 && !_id) {
@@ -20,7 +20,8 @@ exports.saveOrUpdateForm = async (req, res) => {
           updatedAt: Date.now()
         },
         $setOnInsert: {
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          createdBy
         }
       },
       { new: true, upsert: true }
@@ -43,6 +44,7 @@ exports.getAllForms = async (req, res) => {
         ]
       };
     }
+    query['createdBy']= req.query.createdBy
     const forms = await Form.find(query).sort({ updatedAt: -1 }).lean();
 
     const counts = await Response.aggregate([

@@ -14,6 +14,7 @@ import { FieldConfig } from '../../dynamic-form/models/field-config.interface';
 import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { AlertDialogComponent } from '../../shared/dialogs/alert-dialog/alert-dialog.component';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../core/analytics/services/auth.service';
 
 @Component({
   selector: 'app-builder',
@@ -39,7 +40,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private route: ActivatedRoute,
     private router: Router,
-    public builderTools: BuilderTools
+    public builderTools: BuilderTools,
+    private authService:AuthService
   ) { }
 
   ngOnInit(): void {
@@ -327,7 +329,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
       name: this.formName,
       displayName: this.formDisplayName,
       config: this.formConfig,
-      _id: this.id || undefined
+      _id: this.id || undefined,
+      createdBy:this.authService.getUserid()
     };
     this.http.post(`${this.apiUrl}/forms`, formData).subscribe({
       next: (res: any) => {

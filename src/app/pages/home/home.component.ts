@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,7 @@ import { BehaviorSubject, Subscription, debounce, firstValueFrom, retry, switchM
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog/confirm-dialog.component';
+import { AuthService } from '../../core/analytics/services/auth.service';
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -41,12 +42,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   formCount = signal(0);
   destroy$ = inject(DestroyRef);
   private dialog = inject(MatDialog);
+  private authService = inject(AuthService)
   ngOnInit() {
      this.searchSubject.pipe(takeUntilDestroyed(this.destroy$),
       debounce((query) => (query === '' ? timer(0) : timer(300))),
       switchMap((query) => {
         this.isLoading = true;
-        return this.http.get<any[]>(`${this.apiUrl}/forms?name=${query}`).pipe(
+        let params = new HttpParams().set('name', query).set('createdBy', this.authService.getUserid());
+        return this.http.get<any[]>(`${this.apiUrl}/forms`,{params}).pipe(
           retry({
             count: 3,
             delay: (error) => {

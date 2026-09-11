@@ -53,7 +53,7 @@
         <div class="editor-actions" [class.blur]="field.label === '' || field.name === ''"><button type="button" class="save-btn" (click)="toggleEdit(null,field)">Done Editing</button></div>
       </div>
       <div class="field-content" [class.blur]="editingIndex === i && mode === 'edit'"><app-dynamic-field [field]="field" [group]="form"></app-dynamic-field>
-      <button class="show-input-types btn-icon add-btn" type="button" title="Add new Field" (click)="viewOrHideConfigurations()">+</button></div>
+      <button *ngIf="mode==='edit'" class="show-input-types btn-icon add-btn" type="button" title="Add new Field" (click)="viewOrHideConfigurations()">+</button></div>
     </div>
   </div>
   @if(viewConfiguration()){

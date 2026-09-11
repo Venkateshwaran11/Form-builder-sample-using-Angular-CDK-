@@ -33,9 +33,8 @@ export class ResponsesComponent implements OnInit {
   }
 
   loadFormData() {
-    this.http.get<any[]>(`${this.apiUrl}/forms`).subscribe({
-      next: (forms) => {
-        const form = forms.find(f => f._id === this.formId || f.name === this.formId);
+    this.http.get<any[]>(`${this.apiUrl}/forms/${this.formId}`).subscribe({
+      next: (form:any) => {
         if (form) {
           this.formDisplayName = form.displayName;
         } else {
