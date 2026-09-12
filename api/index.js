@@ -35,10 +35,18 @@ if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   app.use(express.static(distPath));
 }
 
+const { initInactivityCron, checkAndDeactivateInactiveUsers } = require('./_src/services/cronService');
+
 // Database Connection
 async function connectDB(){
 await mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
+    // Run in-memory cron only in persistent environments (local / VPS), Vercel uses Vercel Cron endpoint
+    if (!process.env.VERCEL) {
+      initInactivityCron();
+    }
+  })
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 }
 connectDB()
@@ -51,6 +59,20 @@ app.use('/api/forms', formRoutes);
 app.use('/api/responses', responseRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/auth',authRoutes)
+
+// --- VERCEL CRON ENDPOINT ---
+app.get('/api/cron/inactivity', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const result = await checkAndDeactivateInactiveUsers();
+    res.status(200).json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // Single Page Application (SPA) Support for Angular
 // This catch-all route should be AFTER all API routes
 if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {

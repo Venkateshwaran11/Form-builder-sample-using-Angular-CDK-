@@ -1,6 +1,12 @@
 {
   "version": 2,
   "framework": "angular",
+  "crons": [
+    {
+      "path": "/api/cron/inactivity",
+      "schedule": "0 0 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
