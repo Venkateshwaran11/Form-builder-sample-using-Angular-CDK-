@@ -19,7 +19,13 @@ exports.registerUser = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await User.create({ email, password: hashedPassword, username });
+        const user = await User.create({ 
+            email, 
+            password: hashedPassword, 
+            username,
+            lastLogin: new Date(),
+            isActive: true
+        });
 
         // Send credentials email to the newly registered user
         let emailResult = { success: false };
@@ -42,6 +48,8 @@ exports.registerUser = async (req, res) => {
                 username: user.username,
                 email: user.email,
                 role: user.role,
+                isActive: user.isActive,
+                lastLogin: user.lastLogin,
                 createdAt: user.createdAt
             }
         });
@@ -65,6 +73,12 @@ exports.loginUser = async (req,res) => {
         if(!isPasswordValid){
             return res.status(400).json({message:"Invalid password"});
         }
+
+        // Update lastLogin and reactivate account if it was inactive
+        user.lastLogin = new Date();
+        user.isActive = true;
+        await user.save();
+
         const token = jwt.sign({user:user._id},process.env.JWT_SECRET,{expiresIn:"1h"});
         res.status(200).json({message:"Login successful",token,user});
     }catch(err){
