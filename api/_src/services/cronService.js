@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const User = require('../models/User');
 const emailService = require('./emailService');
+const { sendWhatsAppAlert } = require('./whatsappService');
 
 /**
  * Checks all active users whose last login date is older than 7 days,
@@ -45,12 +46,43 @@ async function checkAndDeactivateInactiveUsers() {
       }
     }
 
-    return {
+    const result = {
       deactivatedCount: deactivatedUsernames.length,
       users: deactivatedUsernames
     };
+
+    // Send WhatsApp notification summary
+    try {
+      const timeStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+      const userListStr = deactivatedUsernames.length > 0
+        ? `\n👤 *Users:* ${deactivatedUsernames.join(', ')}`
+        : '\nℹ️ No users met the 7-day inactivity threshold.';
+
+      const alertMessage = `🔔 *Inactivity Cron Finished*\n` +
+        `⏰ *Time:* ${timeStr} (IST)\n` +
+        `📉 *Deactivated:* ${result.deactivatedCount} user(s)` +
+        userListStr;
+
+      await sendWhatsAppAlert(alertMessage, {
+        '1': `${result.deactivatedCount} user(s) deactivated`,
+        '2': timeStr
+      });
+    } catch (notifyErr) {
+      console.error('[Inactivity Cron] WhatsApp notification failed:', notifyErr.message);
+    }
+
+    return result;
   } catch (error) {
     console.error('[Inactivity Cron] Error checking inactive users:', error);
+
+    // Attempt WhatsApp alert on cron failure
+    try {
+      await sendWhatsAppAlert(`🚨 *Inactivity Cron Failed*\n❌ *Error:* ${error.message}`, {
+        '1': 'Job Failed',
+        '2': error.message.substring(0, 30)
+      });
+    } catch (_) {}
+
     throw error;
   }
 }
