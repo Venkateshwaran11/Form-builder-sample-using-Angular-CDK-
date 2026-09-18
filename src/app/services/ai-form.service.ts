@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 export interface AIValidation {
     type:
     | 'required'
@@ -43,7 +43,8 @@ export class AiFormService {
 
     private http = inject(HttpClient);
 
-    private apiUrl = 'http://localhost:3000/api/AI';
+    private apiUrl = environment.apiUrl + '/AI';
+    //private apiUrl =  'http://localhost:3000/api/AI';
 
     generateForm(prompt: string, currentForm?: AIFormConfig): Observable<AIFormConfig> {
         return this.http.post<AIFormConfig>(`${this.apiUrl}/generate-form`,
