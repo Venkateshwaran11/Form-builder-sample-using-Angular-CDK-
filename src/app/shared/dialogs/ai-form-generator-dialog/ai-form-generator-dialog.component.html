@@ -1,0 +1,96 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon>auto_awesome</mat-icon>
+  {{ data.hasExistingForm
+      ? 'Edit Form with AI'
+      : 'Generate Form with AI' }}
+</h2>
+
+<p class="dialog-subtitle">
+  {{ data.hasExistingForm
+      ? 'Describe the changes you want to make to your existing form.'
+      : 'Describe the form you want to create using natural language.' }}
+</p>
+
+<mat-dialog-content class="dialog-content">
+  <label class="prompt-label">
+    What would you like to do?
+  </label>
+
+  <div class="prompt-wrapper">
+    <textarea
+      class="prompt-textarea"
+      [(ngModel)]="prompt"
+      placeholder="Example: Create an employee registration form with name, email, phone number, department and resume upload..."
+      rows="6">
+    </textarea>
+  </div>
+
+  <div class="examples">
+
+    <div class="examples-title">
+      Try an example
+    </div>
+
+    <div class="example-list">
+
+      <button
+        type="button"
+        class="example-chip"
+        (click)="prompt = 'Add age field'">
+        Add age field
+      </button>
+
+      <button
+        type="button"
+        class="example-chip"
+        (click)="prompt = 'Add mobile number field'">
+        Add mobile number
+      </button>
+
+      <button
+        type="button"
+        class="example-chip"
+        (click)="prompt = 'Make all name fields required'">
+        Make fields required
+      </button>
+
+      <button
+        type="button"
+        class="example-chip"
+        (click)="prompt = 'Remove the unwanted fields based on the created form'">
+        Remove a field
+      </button>
+
+    </div>
+
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+
+  <button
+    type="button"
+    mat-button
+    class="cancel-btn"
+    mat-dialog-close>
+    Cancel
+  </button>
+
+  <button
+    type="button"
+    mat-raised-button
+    color="primary"
+    class="generate-btn"
+    [disabled]="!prompt.trim()"
+    (click)="generate()">
+
+    <mat-icon>auto_awesome</mat-icon>
+
+    {{ data.hasExistingForm
+        ? 'Apply Changes'
+        : 'Generate Form' }}
+
+  </button>
+
+</mat-dialog-actions>

@@ -6,6 +6,7 @@ const auth = require('../middlewares/auth.middleware');
 router.post('/', auth, formController.saveOrUpdateForm);
 router.get('/',auth,  formController.getAllForms);
 router.get('/:id', auth, formController.getFormById);
+router.get('/publicForms/:id', formController.getFormById);
 router.delete('/:name', auth, formController.deleteForm);
 
 module.exports = router;
