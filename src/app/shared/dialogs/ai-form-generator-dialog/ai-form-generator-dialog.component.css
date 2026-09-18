@@ -1,0 +1,173 @@
+:host {
+  display: block;
+}
+
+/* Dialog title */
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 20px 24px 12px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.dialog-title mat-icon {
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+/* Subtitle */
+.dialog-subtitle {
+  margin: 0;
+  padding: 0 24px 18px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Content */
+.dialog-content {
+  padding: 0 24px 10px !important;
+}
+
+/* Prompt label */
+.prompt-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Textarea wrapper */
+.prompt-wrapper {
+  position: relative;
+}
+
+/* Textarea */
+.prompt-textarea {
+  width: 100%;
+  min-height: 130px;
+  box-sizing: border-box;
+
+  padding: 14px 16px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+
+  background: #fafafa;
+
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+
+  resize: vertical;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.prompt-textarea:hover {
+  border-color: #9ca3af;
+}
+
+.prompt-textarea:focus {
+  background: #ffffff;
+  border-color: #7c3aed;
+
+  box-shadow:
+    0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.prompt-textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Example prompts */
+.examples {
+  margin-top: 14px;
+}
+
+.examples-title {
+  margin-bottom: 8px;
+
+  color: #6b7280;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.example-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.example-chip {
+  padding: 7px 11px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+
+  background: #ffffff;
+
+  color: #4b5563;
+
+  font-size: 12px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.example-chip:hover {
+  background: #f5f3ff;
+  border-color: #c4b5fd;
+  color: #6d28d9;
+
+  transform: translateY(-1px);
+}
+
+/* Dialog actions */
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 14px 24px 20px !important;
+}
+
+/* Generate button */
+.generate-btn {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+
+  min-width: 150px;
+  height: 42px;
+
+  border-radius: 9px !important;
+
+  font-weight: 600;
+}
+
+.generate-btn mat-icon {
+  font-size: 20px;
+}
+
+/* Cancel button */
+.cancel-btn {
+  height: 42px;
+  border-radius: 9px !important;
+}

@@ -10,6 +10,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { AuthService } from '../../core/analytics/services/auth.service';
+import { SnackbarService } from '../../shared/services/snackbar.service';
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -21,7 +22,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private router = inject(Router);
   apiUrl = environment.apiUrl;
-
+  private snackbar = inject(SnackbarService)
   forms = signal<any[]>([]);
   searchQuery = signal<string>('');
   isLoading: boolean = true;
@@ -40,16 +41,18 @@ export class HomeComponent implements OnInit, OnDestroy {
   // });
 
   formCount = signal(0);
+  copiedFormId = signal<string | null>(null);
+  private copiedStateTimeout?: ReturnType<typeof setTimeout>;
   destroy$ = inject(DestroyRef);
   private dialog = inject(MatDialog);
   private authService = inject(AuthService)
   ngOnInit() {
-     this.searchSubject.pipe(takeUntilDestroyed(this.destroy$),
+    this.searchSubject.pipe(takeUntilDestroyed(this.destroy$),
       debounce((query) => (query === '' ? timer(0) : timer(300))),
       switchMap((query) => {
         this.isLoading = true;
         let params = new HttpParams().set('name', query).set('createdBy', this.authService.getUserid());
-        return this.http.get<any[]>(`${this.apiUrl}/forms`,{params}).pipe(
+        return this.http.get<any[]>(`${this.apiUrl}/forms`, { params }).pipe(
           retry({
             count: 3,
             delay: (error) => {
@@ -111,30 +114,50 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   async deleteForm(form: any, event: Event) {
     event.stopPropagation();
-        const result = this.dialog.open(ConfirmDialogComponent, {
-          data: {
-            title: 'Delete Form',
-            message: `Are you sure you want to delete this form: ${form.displayName}?`,
-            type: 'danger',
-            confirmText: 'Yes',
-            cancelText: 'No'
-          },
-          width: '440px',
-          disableClose: true,
-          panelClass: 'mat-dialog-clean'
-        })
-        const isConfirmed = await firstValueFrom(result.afterClosed());
-        if(isConfirmed){
-          this.http.delete(`${this.apiUrl}/forms/${form.name}`).subscribe({
-            next: () => this.loadForms(),
-            error: (err) => console.error('Error deleting form', err)
-          });
-        }
+    const result = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Form',
+        message: `Are you sure you want to delete this form: ${form.displayName}?`,
+        type: 'danger',
+        confirmText: 'Yes',
+        cancelText: 'No'
+      },
+      width: '440px',
+      disableClose: true,
+      panelClass: 'mat-dialog-clean'
+    })
+    const isConfirmed = await firstValueFrom(result.afterClosed());
+    if (isConfirmed) {
+      this.http.delete(`${this.apiUrl}/forms/${form.name}`).subscribe({
+        next: () => this.loadForms(),
+        error: (err) => console.error('Error deleting form', err)
+      });
+    }
+  }
+
+  async copyToClipBoard(form: any, event: Event) {
+    event.stopPropagation();
+    const formId = form._id || form.name;
+    const copyText = window.location.origin + this.router.serializeUrl(
+      this.router.createUrlTree(['/f', formId])
+    );
+    await navigator.clipboard.writeText(copyText);
+    this.snackbar.success("Response form link copied to clipboard",3000);
+    this.copiedFormId.set(formId);
+    if (this.copiedStateTimeout) {
+      clearTimeout(this.copiedStateTimeout);
+    }
+    this.copiedStateTimeout = setTimeout(() => {
+      this.copiedFormId.set(null);
+    }, 5000);
   }
 
   ngOnDestroy() {
     if (this.searchSubscription) {
       this.searchSubscription.unsubscribe();
+    }
+    if (this.copiedStateTimeout) {
+      clearTimeout(this.copiedStateTimeout);
     }
   }
 }

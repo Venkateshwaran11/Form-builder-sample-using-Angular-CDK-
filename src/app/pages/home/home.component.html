@@ -45,6 +45,9 @@
                 <h3>{{ form.displayName }}</h3>
                 <span class="form-id-badge">{{ form.name }}</span>
               </div>
+              <button class="action-icon-btn danger-color" (click)="deleteForm(form, $event)" title="Delete Form">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
             </div>
 
             <div class="card-body">
@@ -79,8 +82,9 @@
               <button class="action-icon-btn info-color" (click)="shareForm(form, $event)" title="Open Public Form">
                 <mat-icon>open_in_new</mat-icon>
               </button>
-              <button class="action-icon-btn danger-color" (click)="deleteForm(form, $event)" title="Delete Form">
-                <mat-icon>delete_outline</mat-icon>
+              <button class="action-icon-btn info-color" (click)="copyToClipBoard(form, $event)" title="Copy response form url">
+                <mat-icon *ngIf="copiedFormId() !== (form._id || form.name); else copiedIcon">content_copy</mat-icon>
+                <ng-template #copiedIcon><mat-icon>done</mat-icon></ng-template>
               </button>
             </div>
           </div>

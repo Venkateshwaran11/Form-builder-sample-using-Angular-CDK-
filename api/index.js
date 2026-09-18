@@ -53,13 +53,14 @@ connectDB()
 const formRoutes = require('./_src/routes/formRoutes');
 const responseRoutes = require('./_src/routes/responseRoutes');
 const uploadRoutes = require('./_src/routes/uploadRoutes');
-const authRoutes = require('./_src/routes/registerandLoginRoutes')
+const authRoutes = require('./_src/routes/registerandLoginRoutes');
+const AIroutes = require('./_src/routes/aiRoutes');
 // --- API ROUTES ---
 app.use('/api/forms', formRoutes);
 app.use('/api/responses', responseRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/api/auth',authRoutes)
-
+app.use('/api/auth',authRoutes);
+app.use('/api/AI/',AIroutes);
 // --- VERCEL CRON ENDPOINT ---
 app.get('/api/cron/inactivity', async (req, res) => {
   try {

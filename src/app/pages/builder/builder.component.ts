@@ -15,7 +15,8 @@ import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog/conf
 import { AlertDialogComponent } from '../../shared/dialogs/alert-dialog/alert-dialog.component';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/analytics/services/auth.service';
-
+import { AiFormService } from '../../services/ai-form.service';
+import { AiFormGeneratorDialogComponent} from '../../shared/dialogs/ai-form-generator-dialog/ai-form-generator-dialog.component';
 @Component({
   selector: 'app-builder',
   standalone: true,
@@ -41,7 +42,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     public builderTools: BuilderTools,
-    private authService:AuthService
+    private authService:AuthService,
+    private aiFormService: AiFormService
   ) { }
 
   ngOnInit(): void {
@@ -228,8 +230,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
       type: type as any,
       name: fieldName,
       label: label,
+      value: fullConfig?.value,
       placeholder: fullConfig?.placeholder || `Enter ${label}...`,
       required: fullConfig?.required || false,
+      disabled: fullConfig?.disabled || false,
       width: fullConfig?.width || '100%',
       options: fullConfig?.options || ((type === 'dropdown' || type === 'radio' || type === 'multiselect') ? [{ label: 'Option 1', value: '1' }, { label: 'Option 2', value: '2' }] : undefined),
       precision: fullConfig?.precision,
@@ -237,7 +241,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
       headingTextAlignment: fullConfig?.headingTextAlignment || 'left',
       min: fullConfig?.min,
       max: fullConfig?.max,
-
+      pattern: fullConfig?.pattern,
     };
     this.formConfig = [...this.formConfig, newField];
     this.isDirty = true;
@@ -357,6 +361,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
     { type: 'number', label: 'Number', icon: 'pin' },
     { type: 'decimal', label: 'Decimal', icon: 'calculate' },
     { type: 'currency', label: 'Currency', icon: 'currency_rupee' },
+    { type: 'mobile', label: 'Mobile Number', icon: 'phone' },
     { type: 'date', label: 'Date Picker', icon: 'calendar_today' },
     { type: 'timestamp', label: 'Date & Time (Timestamp)', icon: 'schedule' },
     { type: 'dropdown', label: 'Dropdown Select', icon: 'arrow_drop_down' },
@@ -427,5 +432,141 @@ export class BuilderComponent implements OnInit, OnDestroy {
       return false;
     }
     return true;
+  }
+
+
+  openAiGenerator(): void {
+  const dialogRef = this.dialog.open(
+    AiFormGeneratorDialogComponent,
+    {
+      width: '600px',
+      disableClose: true,
+      data: {
+        hasExistingForm: this.formConfig.length > 0
+      }
+    }
+  );
+
+  dialogRef.afterClosed().subscribe(
+    (prompt: string | undefined) => {
+
+      if (prompt) {
+        this.generateFormWithAI(prompt);
+      }
+
+    }
+  );
+}
+
+  generateFormWithAI(prompt: string): void {
+
+    if (!prompt || !prompt.trim()) {
+      this.openAlert(
+        'AI Form Generator',
+        'Please describe the form you want to create.',
+        'warning'
+      );
+      return;
+    }
+    this.isLoading = true;
+    this.aiFormService.generateForm(prompt, {
+    formName: this.formDisplayName,
+    fields: this.formConfig as any
+  }).subscribe({
+
+     next: (response) => {
+
+        console.log('AI Form Response:', response);
+
+        if (!response?.fields?.length) {
+
+          this.openAlert(
+            'AI Form Generator',
+            'The AI did not generate any fields.',
+            'warning'
+          );
+
+          this.isLoading = false;
+          return;
+        }
+
+        // Start with a new form
+        this.formConfig = [];
+
+        // Set form name
+        this.formDisplayName =
+          response.formName || 'AI Generated Form';
+
+        this.formName = this.formDisplayName
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '_')
+          .replace(/_+/g, '_')
+          .replace(/^_|_$/g, '');
+
+        // Add generated fields
+        response.fields.forEach(field => {
+
+          this.addAIField(
+            field.type,
+            field.label,
+            field
+          );
+
+        });
+
+        this.isDirty = true;
+
+        this.snackBar.open(
+          `AI generated ${response.fields.length} fields successfully!`,
+          'Awesome!',
+          {
+            duration: 5000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top',
+            panelClass: ['snackbar-ai']
+          }
+        );
+
+        this.isLoading = false;
+
+        // Scroll to generated form
+        setTimeout(() => {
+
+          if (this.formCanvas) {
+
+            const container =
+              this.formCanvas.nativeElement;
+
+            container.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+
+          }
+
+        }, 100);
+
+      },
+
+      error: (error) => {
+
+        console.error(
+          'AI form generation failed:',
+          error
+        );
+
+        this.isLoading = false;
+
+        const errorMsg = error?.error?.error || error?.error?.message || error?.message || 'Unable to generate the form. Please try again.';
+
+        this.openAlert(
+          'AI Form Generator',
+          errorMsg,
+          'error'
+        );
+
+      }
+
+    });
   }
 }
