@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const User = require('../models/User');
 const emailService = require('./emailService');
 const { sendWhatsAppAlert } = require('./whatsappService');
+const { sendTelegramAlert } = require('./telegramService');
 
 /**
  * Checks all active users whose last login date is older than 7 days,
@@ -51,33 +52,39 @@ async function checkAndDeactivateInactiveUsers() {
       users: deactivatedUsernames
     };
 
-    // Send WhatsApp notification summary
+    // Send notification summary (Telegram + WhatsApp)
     try {
       const timeStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
       const userListStr = deactivatedUsernames.length > 0
-        ? `\n👤 *Users:* ${deactivatedUsernames.join(', ')}`
+        ? `\n👤 Users: ${deactivatedUsernames.join(', ')}`
         : '\nℹ️ No users met the 7-day inactivity threshold.';
 
-      const alertMessage = `🔔 *Inactivity Cron Finished*\n` +
-        `⏰ *Time:* ${timeStr} (IST)\n` +
-        `📉 *Deactivated:* ${result.deactivatedCount} user(s)` +
+      const alertMessage = `🔔 Inactivity Cron Finished\n` +
+        `⏰ Time: ${timeStr} (IST)\n` +
+        `📉 Deactivated: ${result.deactivatedCount} user(s)` +
         userListStr;
 
+      // 1. Send to Telegram (100% Free, instant, exact formatting)
+      await sendTelegramAlert(alertMessage);
+
+      // 2. Also send to WhatsApp if configured
       await sendWhatsAppAlert(alertMessage, {
         '1': `${result.deactivatedCount} user(s) deactivated`,
         '2': timeStr
       });
     } catch (notifyErr) {
-      console.error('[Inactivity Cron] WhatsApp notification failed:', notifyErr.message);
+      console.error('[Inactivity Cron] Notification failed:', notifyErr.message);
     }
 
     return result;
   } catch (error) {
     console.error('[Inactivity Cron] Error checking inactive users:', error);
 
-    // Attempt WhatsApp alert on cron failure
+    // Attempt alert on cron failure
     try {
-      await sendWhatsAppAlert(`🚨 *Inactivity Cron Failed*\n❌ *Error:* ${error.message}`, {
+      const failMsg = `🚨 Inactivity Cron Failed\n❌ Error: ${error.message}`;
+      await sendTelegramAlert(failMsg);
+      await sendWhatsAppAlert(failMsg, {
         '1': 'Job Failed',
         '2': error.message.substring(0, 30)
       });
