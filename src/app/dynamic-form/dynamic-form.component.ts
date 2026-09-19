@@ -542,7 +542,7 @@ export class DynamicFormComponent implements OnInit, OnChanges {
         ctrl.setValidators(validators.length > 0 ? validators : null);
         ctrl.updateValueAndValidity();
       }
-      this.configChange.emit(this.config);
+      // this.configChange.emit(this.config);
     });
   }
 
