@@ -1,7 +1,6 @@
 const cron = require('node-cron');
 const User = require('../models/User');
 const emailService = require('./emailService');
-const { sendWhatsAppAlert } = require('./whatsappService');
 const { sendTelegramAlert } = require('./telegramService');
 
 /**
@@ -52,7 +51,7 @@ async function checkAndDeactivateInactiveUsers() {
       users: deactivatedUsernames
     };
 
-    // Send notification summary (Telegram + WhatsApp)
+    // Send notification summary (Telegram)
     try {
       const timeStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
       const userListStr = deactivatedUsernames.length > 0
@@ -64,14 +63,8 @@ async function checkAndDeactivateInactiveUsers() {
         `📉 Deactivated: ${result.deactivatedCount} user(s)` +
         userListStr;
 
-      // 1. Send to Telegram (100% Free, instant, exact formatting)
+      // Send to Telegram (100% Free, instant, exact formatting)
       await sendTelegramAlert(alertMessage);
-
-      // 2. Also send to WhatsApp if configured
-      await sendWhatsAppAlert(alertMessage, {
-        '1': `${result.deactivatedCount} user(s) deactivated`,
-        '2': timeStr
-      });
     } catch (notifyErr) {
       console.error('[Inactivity Cron] Notification failed:', notifyErr.message);
     }
@@ -84,10 +77,6 @@ async function checkAndDeactivateInactiveUsers() {
     try {
       const failMsg = `🚨 Inactivity Cron Failed\n❌ Error: ${error.message}`;
       await sendTelegramAlert(failMsg);
-      await sendWhatsAppAlert(failMsg, {
-        '1': 'Job Failed',
-        '2': error.message.substring(0, 30)
-      });
     } catch (_) {}
 
     throw error;
