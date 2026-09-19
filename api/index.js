@@ -35,7 +35,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   app.use(express.static(distPath));
 }
 
-const { initInactivityCron, checkAndDeactivateInactiveUsers } = require('./_src/services/cronService');
+const { initInactivityCron, checkAndDeactivateInactiveUsers ,dailyMonitorLoginUsers} = require('./_src/services/cronService');
 
 // Database Connection
 async function connectDB(){
@@ -69,6 +69,7 @@ app.get('/api/cron/inactivity', async (req, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
     const result = await checkAndDeactivateInactiveUsers();
+    await dailyMonitorLoginUsers();
     res.status(200).json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });
