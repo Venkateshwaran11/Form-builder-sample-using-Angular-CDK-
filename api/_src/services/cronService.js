@@ -82,7 +82,42 @@ async function checkAndDeactivateInactiveUsers() {
     throw error;
   }
 }
-
+async function dailyMonitorLoginUsers() {
+  try {
+    const yesterdayStartDatetime = new Date();
+    const yesterdayEndDatetime = new Date();
+    yesterdayStartDatetime.setDate(yesterdayStartDatetime.getDate() - 1);
+    yesterdayStartDatetime.setHours(0, 0, 0, 0);
+    yesterdayEndDatetime.setDate(yesterdayEndDatetime.getDate() - 1);
+    yesterdayEndDatetime.setHours(23, 59, 59, 999);
+    console.log(`[Monitor] Checking users who logged in between ${yesterdayStartDatetime.toISOString()} and ${yesterdayEndDatetime.toISOString()}.`);
+    const yesterdayLoginUsers = await User.find({
+      lastLogin: {
+        $gte: yesterdayStartDatetime,
+        $lte: yesterdayEndDatetime
+      }
+    });
+    console.log(`[Monitor] Found ${yesterdayLoginUsers.length} users who logged in yesterday.`);
+    let messageString = `${yesterdayLoginUsers.length > 1 ? '👥 ' + yesterdayLoginUsers.length + ' Users' : '👤 ' + yesterdayLoginUsers.length + ' User'} have been logged in Form Builder Application on ${yesterdayEndDatetime.toLocaleDateString('en-IN')}\n`;
+    if (yesterdayLoginUsers.length > 0) {
+      for (let user of yesterdayLoginUsers) {
+        const userName = user.username;
+        const emailId = user.email;
+        const lastLogin = user.lastLogin.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+        messageString += `
+        😎 Name: ${userName}
+        📧 Email: ${emailId}
+        📅 Last Login: ${lastLogin}
+        `
+        messageString += "\n\n";
+        messageString += "-----------------------------------------\n\n";
+      }
+    }
+    await sendTelegramAlert(messageString);
+  } catch (error) {
+    console.log(`[Error - Daily Monitor]`, error);
+  }
+}
 /**
  * Initializes the scheduled cron job.
  * Default schedule: Every day at midnight ('0 0 * * *').
@@ -97,15 +132,18 @@ function initInactivityCron() {
     try {
       const result = await checkAndDeactivateInactiveUsers();
       console.log(`✅ [Cron Completed] Inactivity check finished. Deactivated ${result.deactivatedCount} user(s).`);
+      const yesterdayLoginUsers = await dailyMonitorLoginUsers();
+      console.log('[Monitor] Completed checking yesterday login users.'+yesterdayLoginUsers.length+" users have been logged in");
     } catch (err) {
       console.error('❌ [Cron Error] Inactivity job failed:', err.message);
     }
   });
-
+// dailyMonitorLoginUsers()
   console.log(`⏰ Inactivity cron job initialized with schedule: "${cronSchedule}"`);
 }
 
 module.exports = {
   initInactivityCron,
-  checkAndDeactivateInactiveUsers
+  checkAndDeactivateInactiveUsers,
+  dailyMonitorLoginUsers
 };
