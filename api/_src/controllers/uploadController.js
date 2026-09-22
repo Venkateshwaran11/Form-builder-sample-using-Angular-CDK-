@@ -27,6 +27,7 @@ exports.handleUpload = async (req, res) => {
 
     // Return the relative file path URL
     const fileUrl = `/uploads/${uniqueFilename}`;
+    console.log('File path:', filePath);
     res.json({ fileUrl });
   } catch (err) {
     res.status(500).json({ error: err.message });
