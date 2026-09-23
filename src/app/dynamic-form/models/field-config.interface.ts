@@ -32,5 +32,7 @@ export interface FieldConfig {
   errorMessage?: string;
   precision?: number;
   currency?: string;
-  isEditing?:boolean;
+  isEditing?: boolean;
+  isAiAdded?: boolean;
+  isAiModified?: boolean;
 }

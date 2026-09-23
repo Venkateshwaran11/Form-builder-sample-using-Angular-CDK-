@@ -32,8 +32,21 @@ export class BuilderComponent implements OnInit, OnDestroy {
   private flowiseEventTarget = window;
   private messageUpdateHandler: any;
 
-  public isFieldEditing:boolean = false
-    @ViewChild('formCanvas') formCanvas!: ElementRef;
+  public isFieldEditing: boolean = false;
+  @ViewChild('formCanvas') formCanvas!: ElementRef;
+
+  // AI review & undo state
+  aiPreviousState: {
+    formConfig: FieldConfig[];
+    formDisplayName: string;
+    formName: string;
+    isDirty: boolean;
+  } | null = null;
+  hasAiPendingChanges: boolean = false;
+  aiNewFieldsCount: number = 0;
+  aiModifiedFieldsCount: number = 0;
+  aiDeletedFields: string[] = [];
+  aiChangesSummary: string = '';
   
   constructor(
     private snackBar: MatSnackBar,
@@ -163,6 +176,67 @@ export class BuilderComponent implements OnInit, OnDestroy {
     window.addEventListener('ai-messages-update', this.messageUpdateHandler);
   }
 
+  saveAiSnapshot(summary: string = '') {
+    if (!this.hasAiPendingChanges || !this.aiPreviousState) {
+      this.aiPreviousState = {
+        formConfig: JSON.parse(JSON.stringify(this.formConfig)),
+        formDisplayName: this.formDisplayName,
+        formName: this.formName,
+        isDirty: this.isDirty
+      };
+    }
+  }
+
+  undoAiChanges(): void {
+    if (!this.aiPreviousState) return;
+
+    this.formConfig = JSON.parse(JSON.stringify(this.aiPreviousState.formConfig));
+    this.formDisplayName = this.aiPreviousState.formDisplayName;
+    this.formName = this.aiPreviousState.formName;
+    this.isDirty = this.aiPreviousState.isDirty;
+
+    this.hasAiPendingChanges = false;
+    this.aiPreviousState = null;
+    this.aiChangesSummary = '';
+    this.aiNewFieldsCount = 0;
+    this.aiModifiedFieldsCount = 0;
+    this.aiDeletedFields = [];
+
+    this.snackBar.open('AI changes undone. Form restored to previous state.', 'Dismiss', {
+      duration: 3500,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['snackbar-info']
+    });
+  }
+
+  keepAiChanges(silent: boolean = false): void {
+    // Strip isAiAdded and isAiModified flags from fields
+    this.formConfig = this.formConfig.map(f => {
+      if (f.isAiAdded || f.isAiModified) {
+        const { isAiAdded, isAiModified, ...rest } = f;
+        return rest;
+      }
+      return f;
+    });
+
+    this.hasAiPendingChanges = false;
+    this.aiPreviousState = null;
+    this.aiChangesSummary = '';
+    this.aiNewFieldsCount = 0;
+    this.aiModifiedFieldsCount = 0;
+    this.aiDeletedFields = [];
+
+    if (!silent) {
+      this.snackBar.open('AI changes kept successfully!', 'OK', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-success']
+      });
+    }
+  }
+
   parseAICommand(message: string) {
     // Attempt to extract markdown JSON block or raw JSON braces/brackets
     const jsonStrMatch = message.match(/```(?:json)?\s*([\s\S]*?)```/) || message.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
@@ -181,6 +255,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
         }
 
         if (fieldsArray.length > 0) {
+          this.saveAiSnapshot(`AI Chatbot added ${fieldsArray.length} field(s)`);
+
           // Fallback title extraction if missing from JSON structure
           if (!extractedTitle) {
             const textBefore = message.substring(0, message.indexOf(jsonStrMatch[0])).trim();
@@ -196,14 +272,19 @@ export class BuilderComponent implements OnInit, OnDestroy {
             this.formName = extractedTitle.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
           }
 
+          let addedCount = 0;
           fieldsArray.forEach(field => {
             if (field.type && (field.label || field.name)) {
-              this.addAIField(field.type, field.label || field.name, field);
+              this.addAIField(field.type, field.label || field.name, field, true);
+              addedCount++;
             }
           });
 
+          this.hasAiPendingChanges = true;
+          this.aiNewFieldsCount = addedCount;
+          this.aiChangesSummary = `AI Assistant added ${addedCount} new ${addedCount === 1 ? 'field' : 'fields'}.`;
           this.isDirty = true;
-          this.snackBar.open(`AI successfully generated ${fieldsArray.length} fields!`, 'Brilliant', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-ai'] });
+          this.snackBar.open(`AI added ${addedCount} fields! You can Keep or Undo changes.`, 'Review', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-ai'] });
           return;
         }
       } catch (e) {
@@ -217,11 +298,15 @@ export class BuilderComponent implements OnInit, OnDestroy {
     if (match) {
       const type = match[1].toLowerCase().trim();
       const label = match[2].trim();
-      this.addAIField(type, label);
+      this.saveAiSnapshot(`AI Assistant added ${type} field "${label}"`);
+      this.addAIField(type, label, undefined, true);
+      this.hasAiPendingChanges = true;
+      this.aiNewFieldsCount = 1;
+      this.aiChangesSummary = `AI Assistant added 1 new ${type} field: "${label}".`;
     }
   }
 
-  addAIField(type: string, label: string, fullConfig?: any) {
+  addAIField(type: string, label: string, fullConfig?: any, isAiAdded: boolean = true, isAiModified: boolean = false) {
     const validTool = this.availableTools.find(t => t.type === type);
     if (!validTool) return;
 
@@ -242,6 +327,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
       min: fullConfig?.min,
       max: fullConfig?.max,
       pattern: fullConfig?.pattern,
+      isAiAdded: isAiAdded,
+      isAiModified: isAiModified
     };
     this.formConfig = [...this.formConfig, newField];
     this.isDirty = true;
@@ -284,6 +371,147 @@ export class BuilderComponent implements OnInit, OnDestroy {
     });
   }
 
+  async onFileImport(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+
+    const file = input.files[0];
+    try {
+      const text = await file.text();
+      let parsed: any;
+      try {
+        parsed = JSON.parse(text);
+      } catch (parseError) {
+        this.openAlert('Invalid JSON', 'The selected file is not a valid JSON document.', 'error');
+        return;
+      }
+
+      // Handle various JSON structures (array, { fields: [...] }, { config: [...] }, or API response formats)
+      let importedFields: any[] = [];
+      let importedDisplayName = '';
+      let importedFormName = '';
+
+      if (Array.isArray(parsed)) {
+        // Direct array of fields (e.g. from exportConfig)
+        importedFields = parsed;
+      } else if (parsed && typeof parsed === 'object') {
+        if (Array.isArray(parsed.fields)) {
+          importedFields = parsed.fields;
+        } else if (Array.isArray(parsed.config)) {
+          importedFields = parsed.config;
+        } else if (parsed.data && Array.isArray(parsed.data.fields)) {
+          importedFields = parsed.data.fields;
+        } else if (parsed.data && Array.isArray(parsed.data.config)) {
+          importedFields = parsed.data.config;
+        } else if (parsed.data && Array.isArray(parsed.data)) {
+          importedFields = parsed.data;
+        }
+
+        importedDisplayName = parsed.formDisplayName || parsed.displayName || parsed.title || '';
+        importedFormName = parsed.formName || parsed.name || '';
+      }
+
+      if (!Array.isArray(importedFields) || importedFields.length === 0) {
+        this.openAlert('Import Failed', 'The selected JSON file does not contain any form fields or configuration.', 'warning');
+        return;
+      }
+
+      // Filter and validate fields
+      const validTools = new Set(this.availableTools.map(t => t.type));
+      const sanitizedFields: FieldConfig[] = [];
+
+      for (let i = 0; i < importedFields.length; i++) {
+        const item = importedFields[i];
+        if (!item || typeof item !== 'object') continue;
+
+        const fieldType = (item.type || 'text').toString().toLowerCase().trim();
+        const safeType = validTools.has(fieldType) ? fieldType : 'text';
+        const label = item.label || item.name || `Field ${i + 1}`;
+        const name = item.name || (label.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Math.random().toString(36).substring(7));
+
+        const field: FieldConfig = {
+          type: safeType as any,
+          name: name,
+          label: label,
+          value: item.value,
+          placeholder: item.placeholder || `Enter ${label}...`,
+          required: Boolean(item.required),
+          disabled: Boolean(item.disabled),
+          width: item.width || '100%',
+          options: item.options || ((safeType === 'dropdown' || safeType === 'radio' || safeType === 'multiselect') ? [
+            { label: 'Option 1', value: '1' },
+            { label: 'Option 2', value: '2' }
+          ] : undefined),
+          precision: item.precision,
+          currency: item.currency,
+          headingTextAlignment: item.headingTextAlignment || 'left',
+          min: item.min,
+          max: item.max,
+          pattern: item.pattern
+        };
+        sanitizedFields.push(field);
+      }
+
+      if (sanitizedFields.length === 0) {
+        this.openAlert('Import Failed', 'No valid form fields could be extracted from the file.', 'error');
+        return;
+      }
+
+      // Prompt confirmation if current form is not empty
+      if (this.isDirty || this.formConfig.length > 0) {
+        const confirm = await this.openConfirm(
+          'Overwrite Current Form?',
+          `Importing this configuration will replace your current form (${this.formConfig.length} field${this.formConfig.length === 1 ? '' : 's'}). Are you sure you want to continue?`,
+          'warning',
+          'Yes, Import',
+          'Cancel'
+        );
+        if (!confirm) {
+          return;
+        }
+      }
+
+      // Reset AI review banner / states
+      this.hasAiPendingChanges = false;
+      this.aiPreviousState = null;
+      this.submittedData = null;
+
+      // Determine form name and display name
+      if (importedDisplayName) {
+        this.formDisplayName = importedDisplayName;
+      } else {
+        const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' ').trim();
+        this.formDisplayName = baseName ? (baseName.charAt(0).toUpperCase() + baseName.slice(1)) : 'Imported Form';
+      }
+
+      if (importedFormName) {
+        this.formName = importedFormName;
+      } else {
+        this.formName = this.formDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+      }
+
+      // Reset ID to create clean imported form
+      this.id = '';
+      this.formConfig = [...sanitizedFields];
+      this.isDirty = true;
+
+      this.snackBar.open(`"${this.formDisplayName}" imported successfully with ${sanitizedFields.length} field${sanitizedFields.length === 1 ? '' : 's'}!`, 'OK', {
+        duration: 4000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-success']
+      });
+
+    } catch (e: any) {
+      console.error('File import error:', e);
+      this.openAlert('Import Error', `Could not read file: ${e?.message || 'Unknown error'}`, 'error');
+    } finally {
+      input.value = '';
+    }
+  }
+
   exportConfig() {
     if (!this.formConfig || this.formConfig.length === 0) {
       return;
@@ -301,6 +529,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
   async clearConfig() {
     const ok = await this.openConfirm('Clear Form', 'Are you sure you want to clear the entire form?', 'danger', 'Yes, Clear', 'Cancel');
     if (ok) {
+      this.hasAiPendingChanges = false;
+      this.aiPreviousState = null;
       this.isDirty = false;
       this.createNewForm(true);
     }
@@ -311,6 +541,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
       const ok = await this.openConfirm('Unsaved Changes', 'You have unsaved changes. Start a new form anyway?', 'warning', 'Yes, Start New', 'Cancel');
       if (!ok) return;
     }
+    this.hasAiPendingChanges = false;
+    this.aiPreviousState = null;
     this.formConfig = [];
     this.formName = 'untitled_form';
     this.formDisplayName = 'Untitled Form';
@@ -327,6 +559,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
   saveConfig() {
     if(!this.formBuilderSaveValidations()){
       return;
+    }
+
+    if (this.hasAiPendingChanges) {
+      this.keepAiChanges(true);
     }
     
     const formData = {
@@ -391,8 +627,18 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   onConfigChange(newConfig: FieldConfig[]) {
     this.formConfig = newConfig;
-    console.log("384",this.formConfig)
+    console.log("384", this.formConfig);
     this.isDirty = true;
+
+    if (this.hasAiPendingChanges) {
+      const remainingAiFields = this.formConfig.filter(f => f.isAiAdded);
+      this.aiNewFieldsCount = remainingAiFields.length;
+      if (remainingAiFields.length === 0) {
+        this.hasAiPendingChanges = false;
+        this.aiPreviousState = null;
+        this.aiChangesSummary = '';
+      }
+    }
       setTimeout(() => {
         if (this.formCanvas) {
           const container = this.formCanvas.nativeElement;
@@ -490,12 +736,21 @@ export class BuilderComponent implements OnInit, OnDestroy {
           return;
         }
 
-        // Start with a new form
+        // Save snapshot before applying AI changes
+        this.saveAiSnapshot(`AI generated fields based on prompt: "${prompt}"`);
+
+        const prevFields = [...this.formConfig];
+        const existingNames = new Set(prevFields.map(f => (f.name || '').toLowerCase()));
+        const existingLabels = new Set(prevFields.map(f => (f.label || '').toLowerCase()));
+        const prevFieldMap = new Map(prevFields.map(f => [(f.name || '').toLowerCase(), f]));
+        const hadExistingFields = prevFields.length > 0;
+
+        // Reset and rebuild form
         this.formConfig = [];
 
         // Set form name
         this.formDisplayName =
-          response.formName || 'AI Generated Form';
+          response.formName || this.formDisplayName || 'AI Generated Form';
 
         this.formName = this.formDisplayName
           .toLowerCase()
@@ -503,24 +758,81 @@ export class BuilderComponent implements OnInit, OnDestroy {
           .replace(/_+/g, '_')
           .replace(/^_|_$/g, '');
 
+        let newCount = 0;
+        let modifiedCount = 0;
+        const responseNames = new Set(response.fields.map(f => (f.name || '').toLowerCase()));
+        const responseLabels = new Set(response.fields.map(f => (f.label || '').toLowerCase()));
+
         // Add generated fields
         response.fields.forEach(field => {
+          const lowerName = (field.name || '').toLowerCase();
+          const lowerLabel = (field.label || '').toLowerCase();
+          const isBrandNew = !hadExistingFields ||
+            (!existingNames.has(lowerName) && !existingLabels.has(lowerLabel));
+
+          let isModified = false;
+          if (!isBrandNew && hadExistingFields) {
+            const original = prevFieldMap.get(lowerName) || prevFields.find(f => (f.label || '').toLowerCase() === lowerLabel);
+            if (original) {
+              if (Boolean(original.required) !== Boolean(field.required) ||
+                  original.type !== field.type ||
+                  (original.width || '100%') !== (field.width || '100%') ||
+                  original.label !== field.label ||
+                  (original.placeholder || '') !== (field.placeholder || '') ||
+                  JSON.stringify(original.options || []) !== JSON.stringify(field.options || [])) {
+                isModified = true;
+                modifiedCount++;
+              }
+            }
+          }
+
+          if (isBrandNew) newCount++;
 
           this.addAIField(
             field.type,
             field.label,
-            field
+            field,
+            isBrandNew,
+            isModified
           );
-
         });
 
+        // Detect deleted fields
+        const deletedFields: string[] = [];
+        if (hadExistingFields) {
+          prevFields.forEach(pf => {
+            const pName = (pf.name || '').toLowerCase();
+            const pLabel = (pf.label || '').toLowerCase();
+            if (!responseNames.has(pName) && !responseLabels.has(pLabel)) {
+              deletedFields.push(pf.label || pf.name);
+            }
+          });
+        }
+
+        this.aiDeletedFields = deletedFields;
+        this.aiNewFieldsCount = newCount;
+        this.aiModifiedFieldsCount = modifiedCount;
+
+        // Build descriptive summary
+        const summaryParts: string[] = [];
+        if (newCount > 0) summaryParts.push(`added ${newCount} ${newCount === 1 ? 'field' : 'fields'}`);
+        if (modifiedCount > 0) summaryParts.push(`modified ${modifiedCount} ${modifiedCount === 1 ? 'field' : 'fields'}`);
+        if (deletedFields.length > 0) summaryParts.push(`removed ${deletedFields.length} ${deletedFields.length === 1 ? 'field' : 'fields'} (${deletedFields.join(', ')})`);
+
+        if (summaryParts.length === 0) {
+          this.aiChangesSummary = `AI updated the form configuration.`;
+        } else {
+          this.aiChangesSummary = `AI ${summaryParts.join(', ')}.`;
+        }
+
+        this.hasAiPendingChanges = true;
         this.isDirty = true;
 
         this.snackBar.open(
-          `AI generated ${response.fields.length} fields successfully!`,
-          'Awesome!',
+          `AI generated ${response.fields.length} fields! You can Keep or Undo changes.`,
+          'Review',
           {
-            duration: 5000,
+            duration: 6000,
             horizontalPosition: 'right',
             verticalPosition: 'top',
             panelClass: ['snackbar-ai']
