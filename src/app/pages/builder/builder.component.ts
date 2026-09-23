@@ -626,8 +626,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   onConfigChange(newConfig: FieldConfig[]) {
+    const isNewFieldAdded = this.formConfig && newConfig && newConfig.length > this.formConfig.length;
     this.formConfig = newConfig;
-    console.log("384", this.formConfig);
     this.isDirty = true;
 
     if (this.hasAiPendingChanges) {
@@ -639,17 +639,18 @@ export class BuilderComponent implements OnInit, OnDestroy {
         this.aiChangesSummary = '';
       }
     }
+
+    if (isNewFieldAdded) {
       setTimeout(() => {
         if (this.formCanvas) {
           const container = this.formCanvas.nativeElement;
-          console.log('Current Scroll:', container.scrollTop, 'Total Height:', container.scrollHeight);
-
           container.scrollTo({
             top: container.scrollHeight,
             behavior: 'smooth'
           });
         }
       }, 50);
+    }
   }
   onToolOpen(){
     setTimeout(() => {
