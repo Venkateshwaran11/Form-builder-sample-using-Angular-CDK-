@@ -1,26 +1,38 @@
-<ng-container [ngSwitch]="getComponentType(field.type)">
-      
-      <app-form-input *ngSwitchCase="'input'" 
-        [field]="field" [group]="group"></app-form-input>
-        
-      <app-form-select *ngSwitchCase="'select'" 
-        [field]="field" [group]="group"></app-form-select>
-        
-      <app-form-radio *ngSwitchCase="'radio'" 
-        [field]="field" [group]="group"></app-form-radio>
-        
-      <app-form-date *ngSwitchCase="'date'" 
-        [field]="field" [group]="group"></app-form-date>
+<ng-container>
+  @switch(getComponentType(field.type)){
+  @case ('input') {
+  <app-form-input [field]="field" [group]="group">
+  </app-form-input>
+  }
 
-      <div *ngSwitchCase="'heading'" class="heading" [ngClass]="{
+  @case ('select') {
+  <app-form-select [field]="field" [group]="group"></app-form-select>
+  }
+
+  @case ('radio') {
+  <app-form-radio [field]="field" [group]="group"></app-form-radio>
+  }
+
+  @case ('date') {
+  <app-form-date [field]="field" [group]="group"></app-form-date>
+  }
+
+  @case ('heading') {
+  <div class="heading" [ngClass]="{
         'align-left': field.headingTextAlignment === 'left',
         'align-center': field.headingTextAlignment === 'center',
         'align-right': field.headingTextAlignment === 'right'
       }">
-        <mat-icon>view_headline </mat-icon>
-        <span>{{ field.label }}</span>
-      </div>
+    <mat-icon>view_headline </mat-icon>
+    <span>{{ field.label }}</span>
+  </div>
+  }
 
-      <app-form-file *ngSwitchCase="'file'"
-        [field]="field" [group]="group"></app-form-file>
-    </ng-container>
+  @case ('file') {
+  <app-form-file [field]="field" [group]="group"></app-form-file>
+  }
+
+
+
+  }
+</ng-container>

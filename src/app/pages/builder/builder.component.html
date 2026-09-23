@@ -16,11 +16,30 @@
     </div>
 
     <div class="toolbar-right">
-      <button title = "Generate with AI" class="icon-btn" type="button" mat-raised-button color="primary" (click)="openAiGenerator()">
+      <button title="Generate with AI" class="icon-btn" type="button" mat-raised-button color="primary" (click)="openAiGenerator()">
         <mat-icon>auto_awesome</mat-icon> 
       </button>
+
+      <!-- Quick AI Actions (Keep / Undo) in toolbar -->
+      @if(hasAiPendingChanges && mode === 'edit'){
+      <div class="ai-toolbar-actions">
+        <button class="ai-toolbar-btn undo-btn" type="button" (click)="undoAiChanges()" title="Undo AI changes">
+          <mat-icon>undo</mat-icon>
+          <span>Undo AI</span>
+        </button>
+        <button class="ai-toolbar-btn keep-btn" type="button" (click)="keepAiChanges()" title="Keep AI changes">
+          <mat-icon>check</mat-icon>
+          <span>Keep</span>
+        </button>
+      </div>
+      }
+
       <button class="icon-btn" (click)="createNewForm()" title="New Form">
         <mat-icon>add</mat-icon>
+      </button>
+      <input #importFileInput type="file" accept=".json,application/json" (change)="onFileImport($event)" style="display: none">
+      <button class="icon-btn" (click)="importFileInput.click()" title="Import JSON">
+        <mat-icon>file_open</mat-icon>
       </button>
       <button class="icon-btn" (click)="exportConfig()" [disabled]="formConfig.length===0" title="Export JSON"
         [ngClass]="formConfig.length===0? 'disabled': ''">
@@ -88,6 +107,26 @@
               <p>Start a fresh form from scratch</p>
             </div>
           </div>
+
+          <div class="action-card" (click)="importFileInput.click()">
+            <div class="action-icon">
+              <mat-icon>file_upload</mat-icon>
+            </div>
+            <div class="action-details">
+              <h4>Import Configuration</h4>
+              <p>Load form fields from a JSON file</p>
+            </div>
+          </div>
+
+          <div class="action-card" (click)="exportConfig()">
+            <div class="action-icon">
+              <mat-icon>ios_share</mat-icon>
+            </div>
+            <div class="action-details">
+              <h4>Export Configuration</h4>
+              <p>Download form JSON schema</p>
+            </div>
+          </div>
           
           <div class="action-card secondary" (click)="clearConfig()">
             <div class="action-icon">
@@ -105,6 +144,37 @@
 
     <!-- Canvas: Dynamic Form Rendering -->
     <div class="builder-canvas" #formCanvas>
+      
+      <!-- AI Review Action Banner -->
+       @if(hasAiPendingChanges && mode === 'edit'){
+      <div class="ai-review-banner">
+        <div class="ai-banner-left">
+          <div class="ai-banner-badge"> 
+            <mat-icon>auto_awesome</mat-icon>
+          </div>
+          <div class="ai-banner-text">
+            <div class="ai-banner-title-row">
+              <span class="ai-banner-title">AI Changes Applied</span>
+              <span class="ai-count-chip" *ngIf="aiNewFieldsCount > 0"> + {{ aiNewFieldsCount }} added</span>
+              <span class="ai-count-chip modified-chip" *ngIf="aiModifiedFieldsCount > 0"> ~ {{ aiModifiedFieldsCount }} modified</span>
+              <span class="ai-count-chip deleted-chip" *ngIf="aiDeletedFields.length > 0"> - {{ aiDeletedFields.length }} deleted</span>
+            </div>
+            <p class="ai-banner-desc">{{ aiChangesSummary }}</p>
+          </div>
+        </div>
+
+        <div class="ai-banner-actions">
+          <button type="button" class="ai-btn undo-btn" (click)="undoAiChanges()" title="Revert back to the form state before AI made changes">
+            <mat-icon>undo</mat-icon>
+            <span>Undo Changes</span>
+          </button>
+          <button type="button" class="ai-btn keep-btn" (click)="keepAiChanges()" title="Keep and finalize all AI added fields">
+            <mat-icon>check</mat-icon>
+            <span>Keep Changes</span>
+          </button>
+        </div>
+      </div>
+    }
       <app-dynamic-form
         [config]="formConfig"
         [mode]="mode"

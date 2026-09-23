@@ -386,7 +386,7 @@ export class DynamicFormComponent implements OnInit, OnChanges {
   jsonString: any = {};
 
   viewConfiguration = signal(false)
-  constructor(private fb: FormBuilder,private dialog:MatDialog) { }
+  constructor(private fb: FormBuilder, private dialog: MatDialog, private cdr: ChangeDetectorRef) { }
 
   ngOnInit() {
     const savedConfig = localStorage.getItem('dynamicFormConfig');
@@ -409,7 +409,9 @@ export class DynamicFormComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['config'] && !changes['config'].isFirstChange()) {
+      this.editingIndex = null;
       this.createForm();
+      this.cdr.markForCheck();
     }
   }
 
@@ -526,6 +528,9 @@ export class DynamicFormComponent implements OnInit, OnChanges {
 
   updateRequired(index: number, isRequired: boolean) {
     this.config[index].required = isRequired;
+    if(isRequired){
+      this.updateDisabled(index, !isRequired);
+    }
 
     setTimeout(() => {
       const fieldName = this.config[index].name;
@@ -543,6 +548,25 @@ export class DynamicFormComponent implements OnInit, OnChanges {
         ctrl.updateValueAndValidity();
       }
       // this.configChange.emit(this.config);
+    });
+  }
+
+  updateDisabled(index: number, isDisabled: boolean) {
+    this.config[index].disabled = isDisabled;
+    if(isDisabled){
+      this.updateRequired(index, !isDisabled);
+    }
+    setTimeout(() => {
+      const fieldName = this.config[index].name;
+      const ctrl = this.form.get(fieldName);
+
+      if (ctrl) {
+        if (isDisabled) {
+          ctrl.disable();
+        } else {
+          ctrl.enable();
+        }
+      }
     });
   }
 
@@ -632,6 +656,23 @@ export class DynamicFormComponent implements OnInit, OnChanges {
       }
       this.configChange.emit(this.config);
     }
+  }
+
+  undoSingleField(index: number) {
+    if (index < 0 || index >= this.config.length) return;
+    const field = this.config[index];
+    if (field && field.name) {
+      this.form.removeControl(field.name);
+    }
+    this.config = this.config.filter((_, i) => i !== index);
+    if (this.editingIndex === index) {
+      this.editingIndex = null;
+      this.editStatusChange.emit(false);
+    } else if (this.editingIndex !== null && this.editingIndex > index) {
+      this.editingIndex--;
+    }
+    this.configChange.emit(this.config);
+    this.cdr.markForCheck();
   }
 
   addOption(field: FieldConfig) {
