@@ -1,0 +1,314 @@
+.section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.visibityactions {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+}
+
+.visiblityButtons {
+    flex: 1;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 6px 4px;
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.visiblityButtons:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
+.visiblityButtons.active {
+    background-color: #eff6ff;
+    border-color: #3b82f6;
+    color: #1d4ed8;
+    box-shadow: 0 1px 2px rgba(59, 130, 246, 0.1);
+}
+
+.visiblityButtons mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.visiblityButtons.active mat-icon {
+    color: #2563eb;
+}
+.link-box {
+    display: flex;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+    overflow: hidden;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.link-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: #475569;
+    outline: none;
+    min-width: 0;
+}
+
+.copy-btn {
+    padding: 0 10px;
+    background: #eff6ff;
+    border: none;
+    border-left: 1px solid #bfdbfe;
+    color: #2563eb;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+    transition: background 0.15s;
+}
+
+.copy-btn:hover {
+    background: #dbeafe;
+}
+
+.copy-btn mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+}
+
+/* Invite Collaborator Section */
+.user-assignment-section {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.user-assignment {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    width: 100%;
+}
+
+.input-with-icon {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.search-icon {
+    position: absolute;
+    left: 8px;
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.email-input {
+    width: 100%;
+    height: 34px;
+    padding: 6px 8px 6px 28px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    color: #0f172a;
+    background: #ffffff;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.email-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    width: 95px;
+}
+
+.select-role {
+    width: 100%;
+    height: 34px;
+    padding: 6px 22px 6px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #334155;
+    background: #f8fafc;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.select-role:focus {
+    border-color: #3b82f6;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 4px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    color: #64748b;
+    pointer-events: none;
+}
+
+.add-user-btn {
+    width: 100%;
+    height: 32px;
+    margin-top: 8px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.add-user-btn:hover {
+    background: #1d4ed8;
+}
+
+.add-user-btn:active {
+    transform: translateY(1px);
+}
+
+.add-user-btn mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
+}
+.collab-section{
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+}
+.collab-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.collab-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+.av-owner {
+    background: #fef3c7;
+    color: #d97706;
+}
+.collab-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.collab-meta {
+    flex: 1;
+    min-width: 0;
+}
+.collab-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.collab-email {
+    font-size: 0.72rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.av-editor {
+    background: #dbeafe;
+    color: #2563eb;
+}
+.badge-viewer {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+.btn-del {
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

@@ -161,9 +161,9 @@
             </div>
           </div>
         </div>
-        <!-- <div class="sidebar-actions" *ngSwitchCase="'tab3'">
-          <app-form-access-control ></app-form-access-control>
-        </div> -->
+        <div class="sidebar-actions" *ngSwitchCase="'tab3'">
+          <app-form-access-control [formId]="this.id"></app-form-access-control>
+        </div>
       </div>
     </div>
     @if(mode==='edit'){
