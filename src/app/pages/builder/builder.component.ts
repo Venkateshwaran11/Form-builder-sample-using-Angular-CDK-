@@ -19,11 +19,13 @@ import { AiFormService } from '../../services/ai-form.service';
 import { AiFormGeneratorDialogComponent} from '../../shared/dialogs/ai-form-generator-dialog/ai-form-generator-dialog.component';
 import { FormVersionService } from '../../services/version.service';
 import { VersionHistoryDialogComponent } from '../../shared/dialogs/version-history-dialog/version-history-dialog.component';
-import { FormAccessControlComponent } from '../../shared/components/form-access-control/form-access-control.component';
+// import { FormAccessControlComponent } from '../../shared/components/form-access-control/form-access-control.component';
 @Component({
   selector: 'app-builder',
   standalone: true,
-  imports: [CommonModule, DynamicFormComponent, DragDropModule, MatIconModule, FormsModule, MatSnackBarModule, MatDialogModule,FormAccessControlComponent],
+  imports: [CommonModule, DynamicFormComponent, DragDropModule, MatIconModule, FormsModule, MatSnackBarModule, MatDialogModule,
+    // FormAccessControlComponent
+  ],
   templateUrl: './builder.component.html',
   styleUrl: './builder.component.css'
 })
