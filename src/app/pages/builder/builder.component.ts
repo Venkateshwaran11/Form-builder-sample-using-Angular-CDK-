@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone, inject, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, NgZone, inject, OnDestroy, ViewChild, ElementRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,10 +17,15 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/analytics/services/auth.service';
 import { AiFormService } from '../../services/ai-form.service';
 import { AiFormGeneratorDialogComponent} from '../../shared/dialogs/ai-form-generator-dialog/ai-form-generator-dialog.component';
+import { FormVersionService } from '../../services/version.service';
+import { VersionHistoryDialogComponent } from '../../shared/dialogs/version-history-dialog/version-history-dialog.component';
+// import { FormAccessControlComponent } from '../../shared/components/form-access-control/form-access-control.component';
 @Component({
   selector: 'app-builder',
   standalone: true,
-  imports: [CommonModule, DynamicFormComponent, DragDropModule, MatIconModule, FormsModule, MatSnackBarModule, MatDialogModule],
+  imports: [CommonModule, DynamicFormComponent, DragDropModule, MatIconModule, FormsModule, MatSnackBarModule, MatDialogModule,
+    // FormAccessControlComponent
+  ],
   templateUrl: './builder.component.html',
   styleUrl: './builder.component.css'
 })
@@ -47,7 +52,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
   aiModifiedFieldsCount: number = 0;
   aiDeletedFields: string[] = [];
   aiChangesSummary: string = '';
-  
+   private versionService = inject(FormVersionService);
+   currentVersion: number | null = null;
+   hasDraftChanges: boolean = false;
+   public isSidebarCollapsed = signal(false);
   constructor(
     private snackBar: MatSnackBar,
     private ngZone: NgZone,
@@ -358,6 +366,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
           this.formDisplayName = form.displayName;
           this.isDirty = false;
           this.id = form._id;
+
+          this.currentVersion = form.currentPublishedVersion || null;
+          this.hasDraftChanges = form.hasDraftChanges || false
         } else {
           this.openAlert('Error', 'Form not found', 'error');
           this.router.navigate(['/']);
@@ -572,12 +583,19 @@ export class BuilderComponent implements OnInit, OnDestroy {
       _id: this.id || undefined,
       createdBy:this.authService.getUserid()
     };
-    this.http.post(`${this.apiUrl}/forms`, formData).subscribe({
+    this.http.post(`${this.apiUrl}/forms/draft`, formData).subscribe({
       next: (res: any) => {
         this.isDirty = false;
         this.id = res._id; // Ensure we maintain ID after creation
-        this.snackBar.open(`"${this.formDisplayName}" saved successfully!`, 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-success'] });
-        this.createNewForm(true);
+        this.currentVersion = res.currentPublishedVersion || null;
+        this.hasDraftChanges = true; // Mark that draft has working changes
+        this.snackBar.open(
+          `Draft for "${this.formDisplayName}" saved!`, 
+          'OK', 
+          { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-success'] }
+        )
+        // this.snackBar.open(`"${this.formDisplayName}" saved successfully!`, 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-success'] });
+        // this.createNewForm(true);
       },
       error: (err) => {
         console.error('Error saving form:', err);
@@ -586,7 +604,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
     });
   }
 
-  tabs = [{ id: 'tab1', label: 'Fields' }, { id: 'tab2', label: 'Actions' }];
+  tabs = [{ id: 'tab1', label: 'Fields' }, { id: 'tab2', label: 'Actions' }, 
+    // { id: 'tab3', label: 'Access' }
+    ];
   activeTab = this.tabs[0].id;
 
   availableTools = [
@@ -882,4 +902,57 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
     });
   }
+   openVersionHistory() {
+     if (!this.id) {
+       this.snackBar.open('Please save the form first to view version history', 'OK', { duration: 3000 });
+       return;
+     }
+
+     const dialogRef = this.dialog.open(VersionHistoryDialogComponent, {
+       width: '92vw',
+       maxWidth: '1200px',
+       height: '86vh',
+       maxHeight: '90vh',
+       panelClass: 'custom-version-dialog-panel',
+       autoFocus: false,
+       data: {
+         formId: this.id,
+         formDisplayName: this.formDisplayName,
+         currentVersion: this.currentVersion
+       }
+     });
+
+     dialogRef.afterClosed().subscribe((result) => {
+       if (result?.restored && result.form) {
+         this.formConfig = result.form.draftConfig || result.form.config || [];
+         this.hasDraftChanges = true;
+         this.snackBar.open('Restored historical version to canvas draft!', 'OK', { duration: 3000 });
+       }
+     });
+   }
+
+   // Publish a new immutable version
+   publishFormVersion() {
+     if (!this.id) {
+       this.snackBar.open('Please save draft first before publishing.', 'OK', { duration: 3000 });
+       return;
+     }
+
+     const changelog = prompt('Enter a brief description of this version (optional):', '') || '';
+
+     this.versionService.publishVersion(this.id, changelog, this.authService.getUserid()).subscribe({
+       next: (res) => {
+         this.currentVersion = res.version;
+         this.hasDraftChanges = false;
+         this.snackBar.open(`Published Version ${res.version} successfully!`, 'OK', { duration: 3000 });
+       },
+       error: (err) => {
+         this.snackBar.open('Failed to publish version.', 'Dismiss', { duration: 3000 });
+       }
+     });
+   }
+
+   expandOrCollapseSidebar(){
+    this.isSidebarCollapsed.set(!this.isSidebarCollapsed())
+   }
 }
