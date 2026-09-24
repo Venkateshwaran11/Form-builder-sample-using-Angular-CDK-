@@ -52,11 +52,34 @@
       
       <div class="divider"></div>
 
-      <button class="action-btn secondary" (click)="saveConfig()">
-        <mat-icon>save</mat-icon>
-        <span>Save</span>
+      <!-- Version Status Pill Button (Opens Version History & Comparison) -->
+      <button class="version-pill-btn" 
+              *ngIf="id" 
+              (click)="openVersionHistory()" 
+              title="Open Version History & Comparison">
+        <div class="version-pill-icon">
+          <mat-icon>history</mat-icon>
+        </div>
+        <span class="version-label">v{{ currentVersion || 1 }}</span>
+        <span class="draft-indicator" *ngIf="hasDraftChanges" title="Draft changes are pending publish">
+          <span class="pulse-dot"></span>
+          Draft
+        </span>
       </button>
 
+      <!-- Save Draft Button -->
+      <button class="action-btn secondary draft-btn" (click)="saveConfig()" title="Save working draft">
+        <mat-icon>save</mat-icon>
+        <span>Save Draft</span>
+      </button>
+
+      <!-- Publish Version Button -->
+      <button class="action-btn publish-btn" (click)="publishFormVersion()" title="Publish immutable version">
+        <mat-icon>rocket_launch</mat-icon>
+        <span>Publish v{{ (currentVersion || 0) + 1 }}</span>
+      </button>
+
+      <!-- Preview Toggle Button -->
       <button class="action-btn primary" (click)="toggleMode()">
         <mat-icon>{{ mode === 'edit' ? 'visibility' : 'edit' }}</mat-icon>
         <span>{{ mode === 'edit' ? 'Preview' : 'Back to Editor' }}</span>
@@ -77,7 +100,7 @@
     
     <ng-container *ngIf="!isLoading">
       <!-- Sidebar: Field Tools -->
-    <div class="builder-sidebar" *ngIf="mode === 'edit'">
+    <div class="builder-sidebar" *ngIf="mode === 'edit' && !isSidebarCollapsed()">
       <div class="sidebar-header tabs">
         <div class="tabs">
           <button *ngFor="let tab of tabs" (click)="activeTab = tab.id" [class.active1]="activeTab === tab.id">
@@ -138,10 +161,19 @@
             </div>
           </div>
         </div>
-
+        <!-- <div class="sidebar-actions" *ngSwitchCase="'tab3'">
+          <app-form-access-control ></app-form-access-control>
+        </div> -->
       </div>
     </div>
-
+    @if(mode==='edit'){
+      @if(isSidebarCollapsed()){
+        <button class="expand-collapse-slidebar" title="expand sidebar" style="right:30.5px" (click)="expandOrCollapseSidebar()"><mat-icon>{{isSidebarCollapsed() ? 'chevron_right' : 'chevron_left'}}</mat-icon></button>
+      }
+      @else{
+        <button class="expand-collapse-slidebar" title="collapse sidebar" style="right:10.5px" (click)="expandOrCollapseSidebar()"><mat-icon>{{isSidebarCollapsed() ? 'chevron_right' : 'chevron_left'}}</mat-icon></button>
+      }
+    }
     <!-- Canvas: Dynamic Form Rendering -->
     <div class="builder-canvas" #formCanvas>
       

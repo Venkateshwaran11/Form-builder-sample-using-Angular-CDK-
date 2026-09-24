@@ -1,0 +1,230 @@
+<div class="version-dialog-container">
+  <!-- Dialog Header -->
+  <div class="dialog-header">
+    <div class="header-info">
+      <div class="brand-badge">
+        <mat-icon>history</mat-icon>
+      </div>
+      <div>
+        <h2>Version History & Comparison</h2>
+        <p class="subtitle">{{ data.formDisplayName }}</p>
+      </div>
+    </div>
+    <button class="close-btn" (click)="close()" title="Close dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Comparison Selectors & Summary Bar -->
+  <div class="comparison-bar">
+    <div class="version-pickers">
+      <div class="picker-group">
+        <label>Base Version</label>
+        <div class="select-wrapper">
+          <select [(ngModel)]="selectedVersionA" (change)="runComparison()">
+            <option *ngFor="let v of versions" [value]="v.version">
+              Version {{ v.version }} ({{ v.createdAt | date:'shortDate' }})
+            </option>
+          </select>
+          <mat-icon class="select-chevron">expand_more</mat-icon>
+        </div>
+      </div>
+
+      <div class="compare-arrow">
+        <mat-icon>arrow_forward</mat-icon>
+      </div>
+
+      <div class="picker-group">
+        <label>Compare Target</label>
+        <div class="select-wrapper">
+          <select [(ngModel)]="selectedVersionB" (change)="runComparison()">
+            <option value="draft">Current Draft (Working Copy)</option>
+            <option *ngFor="let v of versions" [value]="v.version">
+              Version {{ v.version }} ({{ v.createdAt | date:'shortDate' }})
+            </option>
+          </select>
+          <mat-icon class="select-chevron">expand_more</mat-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Mode Tabs -->
+    <div class="view-tabs">
+      <button [class.active]="activeView === 'visual'" (click)="activeView = 'visual'">
+        <mat-icon>view_column</mat-icon>
+        <span>Side-by-Side</span>
+      </button>
+      <button [class.active]="activeView === 'changelog'" (click)="activeView = 'changelog'">
+        <mat-icon>format_list_bulleted</mat-icon>
+        <span>Changelog</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric Badges -->
+  <div class="diff-summary-badges" *ngIf="diffResult">
+    <div class="badge-item added" *ngIf="diffResult.addedCount > 0">
+      <mat-icon>add_circle</mat-icon>
+      <span>{{ diffResult.addedCount }} Added</span>
+    </div>
+    <div class="badge-item removed" *ngIf="diffResult.removedCount > 0">
+      <mat-icon>remove_circle</mat-icon>
+      <span>{{ diffResult.removedCount }} Removed</span>
+    </div>
+    <div class="badge-item modified" *ngIf="diffResult.modifiedCount > 0">
+      <mat-icon>edit</mat-icon>
+      <span>{{ diffResult.modifiedCount }} Modified</span>
+    </div>
+    <div class="badge-item unchanged">
+      <mat-icon>check_circle</mat-icon>
+      <span>{{ diffResult.unchangedCount }} Unchanged</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Analyzing schema differences...</p>
+  </div>
+
+  <!-- Content: Synchronized Side-by-Side Visual Diff -->
+  <div class="dialog-body" *ngIf="!isLoading && diffResult && activeView === 'visual'">
+    <div class="diff-table">
+      <!-- Column Headers -->
+      <div class="diff-table-header">
+        <div class="th-col th-left">
+          <span class="version-tag">Base Version</span>
+          <span class="version-title">{{ diffResult.versionA }}</span>
+        </div>
+        <div class="th-col th-center">
+          <span>Relation</span>
+        </div>
+        <div class="th-col th-right">
+          <span class="version-tag target">Comparison Target</span>
+          <span class="version-title">{{ diffResult.versionB }}</span>
+        </div>
+      </div>
+
+      <!-- Synchronized Row Pairs -->
+      <div class="diff-rows-container">
+        <div *ngFor="let item of diffResult.items" 
+             class="diff-row" 
+             [ngClass]="'diff-' + item.changeType">
+          
+          <!-- Left Column (Base Field) -->
+          <div class="diff-cell cell-left">
+            <div *ngIf="item.oldField" class="field-card base-card" [ngClass]="item.changeType">
+              <div class="card-header-line">
+                <span class="field-label-text">{{ item.oldField.label }}</span>
+                <span class="field-type-pill">{{ item.oldField.type }}</span>
+              </div>
+              <div class="card-footer-line">
+                <span class="key-label">Key: <code>{{ item.oldField.name }}</code></span>
+                <span *ngIf="item.oldField.required" class="required-chip">Required</span>
+              </div>
+            </div>
+            <div *ngIf="!item.oldField" class="empty-placeholder">
+              <mat-icon>add_circle_outline</mat-icon>
+              <span>Not in {{ diffResult.versionA }}</span>
+            </div>
+          </div>
+
+          <!-- Center Column (Relation Badge) -->
+          <div class="diff-cell cell-center">
+            <div class="relation-badge" [ngClass]="item.changeType" [title]="item.changeType | uppercase">
+              <mat-icon *ngIf="item.changeType === 'added'">add</mat-icon>
+              <mat-icon *ngIf="item.changeType === 'removed'">delete_outline</mat-icon>
+              <mat-icon *ngIf="item.changeType === 'modified'">edit</mat-icon>
+              <mat-icon *ngIf="item.changeType === 'reordered'">swap_vert</mat-icon>
+              <mat-icon *ngIf="item.changeType === 'unchanged'">check</mat-icon>
+            </div>
+          </div>
+
+          <!-- Right Column (Target Field) -->
+          <div class="diff-cell cell-right">
+            <div *ngIf="item.newField" class="field-card target-card" [ngClass]="item.changeType">
+              <div class="card-header-line">
+                <span class="field-label-text">{{ item.newField.label }}</span>
+                <span class="field-type-pill">{{ item.newField.type }}</span>
+                <span *ngIf="item.changeType !== 'unchanged'" class="change-tag" [ngClass]="item.changeType">
+                  {{ item.changeType }}
+                </span>
+              </div>
+              <div class="card-footer-line">
+                <span class="key-label">Key: <code>{{ item.newField.name }}</code></span>
+                <span *ngIf="item.newField.required" class="required-chip">Required</span>
+              </div>
+
+              <!-- Property Differences Breakdown -->
+              <div class="property-changes-list" *ngIf="item.propertyChanges?.length">
+                <div class="prop-change-pill" *ngFor="let p of item.propertyChanges">
+                  <span class="prop-name">{{ p.property }}:</span>
+                  <span class="old-val">{{ p.oldValue }}</span>
+                  <span class="arrow">➔</span>
+                  <span class="new-val">{{ p.newValue }}</span>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="!item.newField" class="empty-placeholder removed-placeholder">
+              <mat-icon>delete_outline</mat-icon>
+              <span>Removed in {{ diffResult.versionB }}</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content: Changelog View -->
+  <div class="dialog-body changelog-view" *ngIf="!isLoading && diffResult && activeView === 'changelog'">
+    <div class="changelog-list">
+      <div *ngFor="let item of diffResult.items" class="changelog-card" [ngClass]="item.changeType">
+        <div class="cl-icon" [ngClass]="item.changeType">
+          <mat-icon *ngIf="item.changeType === 'added'">add_circle</mat-icon>
+          <mat-icon *ngIf="item.changeType === 'removed'">remove_circle</mat-icon>
+          <mat-icon *ngIf="item.changeType === 'modified'">edit</mat-icon>
+          <mat-icon *ngIf="item.changeType === 'reordered'">swap_vert</mat-icon>
+          <mat-icon *ngIf="item.changeType === 'unchanged'">check_circle</mat-icon>
+        </div>
+        <div class="cl-details">
+          <div class="cl-header">
+            <strong>{{ item.newField?.label || item.oldField?.label }}</strong>
+            <span class="cl-badge" [ngClass]="item.changeType">{{ item.changeType | uppercase }}</span>
+          </div>
+          <p *ngIf="item.changeType === 'added'">
+            Added new field <code>{{ item.newField?.name }}</code> of type <strong>{{ item.newField?.type }}</strong>
+          </p>
+          <p *ngIf="item.changeType === 'removed'">
+            Removed field <code>{{ item.oldField?.name }}</code> from the form configuration
+          </p>
+          <p *ngIf="item.changeType === 'reordered'">
+            Reordered field position from #{{ (item.oldIndex || 0) + 1 }} to #{{ (item.newIndex || 0) + 1 }}
+          </p>
+          <p *ngIf="item.changeType === 'unchanged'" class="unchanged-note">
+            Field configuration is identical in both versions
+          </p>
+          <div *ngIf="item.changeType === 'modified'" class="cl-props">
+            <div class="cl-prop-row" *ngFor="let p of item.propertyChanges">
+              <span class="prop-key">{{ p.property }}</span>
+              <span class="prop-old">{{ p.oldValue | json }}</span>
+              <span class="prop-arrow">➔</span>
+              <span class="prop-new">{{ p.newValue | json }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="dialog-footer">
+    <button class="footer-btn secondary" (click)="close()">Close</button>
+    <button class="footer-btn warning" 
+            *ngIf="selectedVersionA && selectedVersionA !== 'draft'"
+            (click)="restoreSelected()">
+      <mat-icon>restore</mat-icon>
+      <span>Restore Version {{ selectedVersionA }} to Draft</span>
+    </button>
+  </div>
+</div>
