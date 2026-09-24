@@ -19,12 +19,12 @@ import { AiFormService } from '../../services/ai-form.service';
 import { AiFormGeneratorDialogComponent} from '../../shared/dialogs/ai-form-generator-dialog/ai-form-generator-dialog.component';
 import { FormVersionService } from '../../services/version.service';
 import { VersionHistoryDialogComponent } from '../../shared/dialogs/version-history-dialog/version-history-dialog.component';
-// import { FormAccessControlComponent } from '../../shared/components/form-access-control/form-access-control.component';
+import { FormAccessControlComponent } from '../../shared/components/form-access-control/form-access-control.component';
 @Component({
   selector: 'app-builder',
   standalone: true,
   imports: [CommonModule, DynamicFormComponent, DragDropModule, MatIconModule, FormsModule, MatSnackBarModule, MatDialogModule,
-    // FormAccessControlComponent
+    FormAccessControlComponent
   ],
   templateUrl: './builder.component.html',
   styleUrl: './builder.component.css'
@@ -605,7 +605,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   tabs = [{ id: 'tab1', label: 'Fields' }, { id: 'tab2', label: 'Actions' }, 
-    // { id: 'tab3', label: 'Access' }
+    { id: 'tab3', label: 'Access' }
     ];
   activeTab = this.tabs[0].id;
 

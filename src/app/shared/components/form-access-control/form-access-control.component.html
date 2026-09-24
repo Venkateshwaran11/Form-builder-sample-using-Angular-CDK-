@@ -1,0 +1,87 @@
+<div>
+    <div class="section-label">Form Visibility</div>
+    <div class="visibityactions">
+        <button class="visiblityButtons" [class.active]="selectedVisibility === 'public'"
+            (click)="selectedVisibility = 'public'">
+            <mat-icon>public</mat-icon>
+            <span>Public</span>
+        </button>
+        <button class="visiblityButtons" [class.active]="selectedVisibility === 'restricted'"
+            (click)="selectedVisibility = 'restricted'">
+            <mat-icon>lock_person</mat-icon>
+            <span>Restricted</span>
+        </button>
+        <button class="visiblityButtons" [class.active]="selectedVisibility === 'private'"
+            (click)="selectedVisibility = 'private'">
+            <mat-icon>shield</mat-icon>
+            <span>Private</span>
+        </button>
+    </div>
+    <div class="link-box">
+        <input type="text" class="link-input" value="{{copyUrl()}}" readonly>
+        <button class="copy-btn" (click)="copyLink()" title="Copy Link">
+            <mat-icon>content_copy</mat-icon>
+            <span>Copy</span>
+        </button>
+    </div>
+
+    <!-- Section 2: Invite Collaborators -->
+    <div class="user-assignment-section">
+        <div class="section-label">Invite Collaborators</div>
+        <div class="user-assignment">
+            <div class="input-with-icon">
+                <mat-icon class="search-icon">mail_outline</mat-icon>
+                <input type="email" class="email-input" placeholder="user@company.com">
+            </div>
+            <div class="select-wrapper">
+                <select class="select-role" [(ngModel)]="selectedRole">
+                    @for (role of roleList; track role.value) {
+                    <option [value]="role.value">
+                        {{ role.label }}
+                    </option>
+                    }
+                </select>
+                <mat-icon class="select-arrow">expand_more</mat-icon>
+            </div>
+        </div>
+        <button class="add-user-btn" type="button">
+            <mat-icon>person_add</mat-icon>
+            <span>+ Add User</span>
+        </button>
+    </div>
+    <div class="collab-section">
+        <div class="section-label">Assigned colloborators</div>
+       
+        <div class="collab-list">
+            <div class="collab-card">
+              <div class="collab-avatar av-owner">AJ</div>
+              <div class="collab-meta">
+                <div class="collab-name">Alex Johnson</div>
+                <div class="collab-email">[EMAIL_ADDRESS]</div>
+              </div>
+              <span class="badge badge-owner">👑 Owner</span>
+            </div>
+
+            <div class="collab-card">
+              <div class="collab-avatar av-editor">SC</div>
+              <div class="collab-meta">
+                <div class="collab-name">Sarah Chen</div>
+                <div class="collab-email">sarahcompany.com</div>
+              </div>
+              <span class="badge badge-editor">Editor</span>
+              <button class="btn-del" title="Remove Collaborator">×</button>
+            </div>
+
+            <div class="collab-card">
+              <div class="collab-avatar av-viewer">JS</div>
+              <div class="collab-meta">
+                <div class="collab-name">John Smith</div>
+                <div class="collab-email">[EMAIL_ADDRESS]</div>
+              </div>
+              <span class="badge badge-viewer">Viewer</span>
+              <button class="btn-del" title="Remove Collaborator">×</button>
+            </div>
+          </div>
+
+    </div>
+</div>
