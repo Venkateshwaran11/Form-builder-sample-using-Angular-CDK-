@@ -17,4 +17,7 @@ router.get('/:id/versions', auth, formController.getFormVersions);
 router.get('/:id/versions/compare', auth, formController.compareVersions);
 router.post('/:id/versions/:version/restore', auth, formController.restoreVersion);
 
+
+// User Role assignment
+router.post('/assign-user', auth, formController.userAssignment);
 module.exports = router;

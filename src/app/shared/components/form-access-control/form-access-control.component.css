@@ -117,15 +117,22 @@
 .user-assignment {
     display: flex;
     gap: 6px;
-    align-items: center;
+    align-items: flex-start;
     width: 100%;
 }
 
-.input-with-icon {
+.input-field-wrapper {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.input-with-icon {
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
     min-width: 0;
 }
 
@@ -151,12 +158,39 @@
     background: #ffffff;
     outline: none;
     box-sizing: border-box;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
 .email-input:focus {
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.email-input.input-error {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.email-input.input-error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.error-message {
+    font-size: 0.72rem;
+    color: #ef4444;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+}
+
+.error-message mat-icon {
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+    line-height: 13px;
 }
 
 .select-wrapper {

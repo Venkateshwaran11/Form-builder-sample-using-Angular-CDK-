@@ -1,7 +1,7 @@
 const Form = require('../models/Form');
 const Response = require('../models/Response');
 const FormVersion = require('../models/FormVersion');
-
+const User = require('../models/User');
 // Save or Update a Form Config
 exports.saveOrUpdateForm = async (req, res) => {
   try {
@@ -11,6 +11,9 @@ exports.saveOrUpdateForm = async (req, res) => {
     if (isExistingForm.length > 0 && !_id) {
       return res.status(400).json({ error: 'Form already exists' });
     }
+    const creatorId = createdBy || req.user?.user;
+    const creatorUser = creatorId ? await User.findById(creatorId).select('email') : null;
+
     let form = await Form.findOneAndUpdate(
       filter,
       {
@@ -22,7 +25,12 @@ exports.saveOrUpdateForm = async (req, res) => {
         },
         $setOnInsert: {
           createdAt: Date.now(),
-          createdBy
+          createdBy: creatorId,
+          assignments: creatorUser ? [{
+            userId: creatorUser._id.toString(),
+            userEmail: creatorUser.email,
+            role: 'owner'
+          }] : []
         }
       },
       { new: true, upsert: true }
@@ -36,16 +44,26 @@ exports.saveOrUpdateForm = async (req, res) => {
 // Get All Form Definitions
 exports.getAllForms = async (req, res) => {
   try {
-    let query = {};
-    if (req.query && req.query.name) {
+    let query = {
+      $or: [
+        { createdBy: req.query.createdBy },
+        { "assignments.userId": req.query.createdBy }
+      ]
+    };
+
+    if (req.query.name) {
       query = {
-        $or: [
-          { name: { $regex: req.query.name, $options: 'i' } },
-          { displayName: { $regex: req.query.name, $options: 'i' } }
+        $and: [
+          query,
+          {
+            $or: [
+              { name: { $regex: req.query.name, $options: 'i' } },
+              { displayName: { $regex: req.query.name, $options: 'i' } }
+            ]
+          }
         ]
       };
     }
-    query['createdBy']= req.query.createdBy
     const forms = await Form.find(query).sort({ updatedAt: -1 }).lean();
 
     const counts = await Response.aggregate([
@@ -104,14 +122,22 @@ exports.saveDraft = async (req, res) => {
       fieldId: f.fieldId || (f.name ? `fld_${f.name}` : `fld_${i}`)
     }));
     if (!form) {
+      const creatorId = createdBy || req.user?.user;
+      const creatorUser = creatorId ? await User.findById(creatorId).select('email') : null;
+
       form = new Form({
         name,
         displayName,
         draftConfig: sanitizedConfig,
         config: sanitizedConfig,
-        createdBy: createdBy || 'anonymous',
+        createdBy: creatorId || 'anonymous',
         hasDraftChanges: true,
-        status: 'draft'
+        status: 'draft',
+        assignments: creatorUser ? [{
+          userId: creatorUser._id.toString(),
+          userEmail: creatorUser.email,
+          role: 'owner'
+        }] : []
       });
       await form.save();
       return res.status(201).json(form);
@@ -277,3 +303,49 @@ exports.restoreVersion = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.userAssignment = async (req, res) => {
+  try {
+    const { email, role, formId } = req.body;
+
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+      const form = await Form.findById(formId);
+      if (!form) {
+        return res.status(404).json({ error: "Form not found" })
+      }
+      const existingAssignment = form.assignments.find(item => item.userEmail === email);
+      if(existingAssignment){
+        existingAssignment.role = role;
+      }
+      else{
+        form.assignments.push({
+          userId: user._id.toString(),
+          userEmail: email,
+          role: role    
+        });
+      }
+
+      // Ensure original owner is present in assignments for older forms
+      if (!form.assignments.some(item => item.role === 'owner')) {
+        const ownerUser = await User.findById(form.createdBy).select('email');
+        if (ownerUser) {
+          form.assignments.unshift({
+            userId: ownerUser._id.toString(),
+            userEmail: ownerUser.email,
+            role: 'owner'
+          });
+        }
+      }
+      
+      await form.save();
+      return res.status(200).json({ message: "Assignment added successfully",assignedUserList:form.assignments })
+    
+  }
+  catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}

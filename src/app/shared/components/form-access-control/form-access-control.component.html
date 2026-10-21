@@ -28,31 +28,70 @@
     <!-- Section 2: Invite Collaborators -->
     <div class="user-assignment-section">
         <div class="section-label">Invite Collaborators</div>
-        <div class="user-assignment">
-            <div class="input-with-icon">
-                <mat-icon class="search-icon">mail_outline</mat-icon>
-                <input type="email" class="email-input" placeholder="user@company.com">
-            </div>
-            <div class="select-wrapper">
-                <select class="select-role" [(ngModel)]="selectedRole">
-                    @for (role of roleList; track role.value) {
-                    <option [value]="role.value">
-                        {{ role.label }}
-                    </option>
+        <form #accessform="ngForm" (ngSubmit)="saveUSer(accessform)" novalidate>
+            <div class="user-assignment">
+                <div class="input-field-wrapper">
+                    <div class="input-with-icon">
+                        <mat-icon class="search-icon">mail_outline</mat-icon>
+                        <input
+                            type="email"
+                            class="email-input"
+                            [class.input-error]="emailCtrl.invalid && (emailCtrl.touched || emailCtrl.dirty || accessform.submitted)"
+                            placeholder="user@company.com"
+                            [(ngModel)]="email"
+                            name="email"
+                            #emailCtrl="ngModel"
+                            required
+                            email
+                            pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                        >
+                    </div>
+                    @if (emailCtrl.invalid && (emailCtrl.touched || emailCtrl.dirty || accessform.submitted)) {
+                        @if (emailCtrl.errors?.['required']) {
+                            <span class="error-message">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>Email is required</span>
+                            </span>
+                        } @else if (emailCtrl.errors?.['email'] || emailCtrl.errors?.['pattern']) {
+                            <span class="error-message">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>Please enter a valid email address</span>
+                            </span>
+                        }
                     }
-                </select>
-                <mat-icon class="select-arrow">expand_more</mat-icon>
+                </div>
+                <div class="select-wrapper">
+                    <select class="select-role" [(ngModel)]="selectedRole" name="role">
+                        @for (role of roleList; track role.value) {
+                        <option [value]="role.value">
+                            {{ role.label }}
+                        </option>
+                        }
+                    </select>
+                    <mat-icon class="select-arrow">expand_more</mat-icon>
+                </div>
             </div>
-        </div>
-        <button class="add-user-btn" type="button">
-            <mat-icon>person_add</mat-icon>
-            <span>+ Add User</span>
-        </button>
+            <button class="add-user-btn" type="submit">
+                <mat-icon>person_add</mat-icon>
+                <span>+ Add User</span>
+            </button>
+        </form>
     </div>
     <div class="collab-section">
         <div class="section-label">Assigned colloborators</div>
        
         <div class="collab-list">
+            @for (user of assignedUserList; track user.userId){
+                <div class="collab-card">
+                    <div class="collab-avatar" [class.av-owner]="user.role==='owner'" [class.av-editor]="user.role==='editor'" [class.av-viewer]="user.role==='viewer'">{{user.userEmail.charAt(0).toUpperCase()}}</div>
+                    <div class="collab-meta">
+                        <div class="collab-name">{{user.userEmail}}</div>
+                        <div class="collab-email">{{user.userEmail}}</div>
+                    </div>
+                    <span class="badge" [class.badge-owner]="user.role==='owner'" [class.badge-editor]="user.role==='editor'" [class.badge-viewer]="user.role==='viewer'">{{user.role}}</span>
+              <button class="btn-del" title="Remove Collaborator">×</button>
+                </div>
+            }
             <div class="collab-card">
               <div class="collab-avatar av-owner">AJ</div>
               <div class="collab-meta">
