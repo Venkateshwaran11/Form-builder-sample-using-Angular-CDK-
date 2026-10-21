@@ -24,7 +24,14 @@ const FormSchema = new mongoose.Schema({
   publishedAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  createdBy: { type: String, required: true }
+  createdBy: { type: String, required: true },
+  assignments: [
+    {
+      userId: { type: String, required: true },
+      userEmail: { type: String, required: true },
+      role: { type: String, enum: ['owner', 'editor', 'viewer', 'respondent'], default: 'editor' }
+    }
+  ]
 });
 
 // Synchronize draftConfig and config so legacy code reading/writing either works smoothly

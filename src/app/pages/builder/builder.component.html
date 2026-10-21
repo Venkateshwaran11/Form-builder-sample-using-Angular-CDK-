@@ -37,6 +37,9 @@
       <button class="icon-btn" (click)="createNewForm()" title="New Form">
         <mat-icon>add</mat-icon>
       </button>
+      <!-- <button class="icon-btn template-btn" (click)="openTemplateGallery()" title="Google Form Templates Gallery">
+        <mat-icon>dashboard_customize</mat-icon>
+      </button> -->
       <input #importFileInput type="file" accept=".json,application/json" (change)="onFileImport($event)" style="display: none">
       <button class="icon-btn" (click)="importFileInput.click()" title="Import JSON">
         <mat-icon>file_open</mat-icon>
@@ -162,7 +165,7 @@
           </div>
         </div>
         <div class="sidebar-actions" *ngSwitchCase="'tab3'">
-          <app-form-access-control [formId]="this.id"></app-form-access-control>
+          <app-form-access-control [formId]="this.id" [assignedUserList]="this.userAssignments"></app-form-access-control>
         </div>
       </div>
     </div>
