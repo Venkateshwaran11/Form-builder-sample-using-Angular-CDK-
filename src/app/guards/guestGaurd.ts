@@ -8,7 +8,7 @@ export const guestGuard:CanActivateFn = ()=>{
 
     const router = inject(Router);
     const auth = inject(AuthService)
-    const isUserLoggedIn = auth.currentUser()!==null;
+    const isUserLoggedIn = auth.currentUser()!==null && auth.getAuthToken()!==null;
 
     if(isUserLoggedIn){
         router.navigate(['/dashboard']);

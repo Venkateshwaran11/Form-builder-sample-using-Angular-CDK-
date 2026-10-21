@@ -25,7 +25,9 @@ export class AuthService {
     getUserid():string{
        return this.currentUser()?._id??null;
     }
-
+    getAuthToken():string|null{
+        return localStorage.getItem('token')??null;
+    }
     logout() {
         this.currentUser.set(null);
         localStorage.removeItem('token');
