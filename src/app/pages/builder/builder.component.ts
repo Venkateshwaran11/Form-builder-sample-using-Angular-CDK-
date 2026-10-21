@@ -20,8 +20,8 @@ import { AiFormGeneratorDialogComponent} from '../../shared/dialogs/ai-form-gene
 import { FormVersionService } from '../../services/version.service';
 import { VersionHistoryDialogComponent } from '../../shared/dialogs/version-history-dialog/version-history-dialog.component';
 import { FormAccessControlComponent } from '../../shared/components/form-access-control/form-access-control.component';
-import { FormTemplateService, FormTemplate } from '../../shared/services/form-template.service';
-import { TemplateGalleryDialogComponent } from '../../shared/dialogs/template-gallery-dialog/template-gallery-dialog.component';
+// import { FormTemplateService, FormTemplate } from '../../shared/services/form-template.service';
+// import { TemplateGalleryDialogComponent } from '../../shared/dialogs/template-gallery-dialog/template-gallery-dialog.component';
 @Component({
   selector: 'app-builder',
   standalone: true,
@@ -68,7 +68,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
     public builderTools: BuilderTools,
     private authService:AuthService,
     private aiFormService: AiFormService,
-    private templateService: FormTemplateService
+    // private templateService: FormTemplateService
   ) { }
 
   ngOnInit(): void {
