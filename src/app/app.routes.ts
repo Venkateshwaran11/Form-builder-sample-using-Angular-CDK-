@@ -6,10 +6,11 @@ import { ViewerComponent } from './pages/viewer/viewer.component';
 import { LoginComponent } from './auth/login/login.component';
 import { authGuardGuard } from './guards/auth-guard.guard';
 import { unsavedChangesGuard } from './guards/unsaved-changes.guard';
+import { guestGuard } from './guards/guestGaurd';
 
 export const routes: Routes = [
   // { path: '', component: HomeComponent },
-  { path: '', component: LoginComponent },
+  { path: '', component: LoginComponent, canActivate:[guestGuard] },
   { path: 'dashboard', 
     loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
     canActivate: [authGuardGuard] 
@@ -28,7 +29,8 @@ export const routes: Routes = [
   },
   {
     path:'Sign-up',
-    loadComponent: ()=>import('./auth/signup/signup.component').then(m=>m.SignupComponent)
+    loadComponent: ()=>import('./auth/signup/signup.component').then(m=>m.SignupComponent),
+    canActivate:[guestGuard]
   },
   { path: 'f/:id', loadComponent: () => import('./pages/viewer/viewer.component').then(m => m.ViewerComponent) },
   { path: '**', redirectTo: '' }
