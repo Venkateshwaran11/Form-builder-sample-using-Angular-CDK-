@@ -18,7 +18,7 @@
         </button>
     </div>
     <div class="link-box">
-        <input type="text" class="link-input" value="{{copyUrl()}}" readonly>
+        <input type="text" class="link-input" [value]="shareableUrl" readonly>
         <button class="copy-btn" (click)="copyLink()" title="Copy Link">
             <mat-icon>content_copy</mat-icon>
             <span>Copy</span>
@@ -71,56 +71,49 @@
                     <mat-icon class="select-arrow">expand_more</mat-icon>
                 </div>
             </div>
-            <button class="add-user-btn" type="submit">
-                <mat-icon>person_add</mat-icon>
-                <span>+ Add User</span>
+            <button class="add-user-btn" type="submit" [disabled]="isLoading()">
+                <mat-icon>{{ isLoading() ? 'hourglass_top' : 'person_add' }}</mat-icon>
+                <span>{{ isLoading() ? 'Adding...' : '+ Add User' }}</span>
             </button>
         </form>
     </div>
     <div class="collab-section">
-        <div class="section-label">Assigned colloborators</div>
+        <div class="section-label">Assigned Collaborators ({{ assignedUserList.length }})</div>
        
         <div class="collab-list">
             @for (user of assignedUserList; track user.userId){
                 <div class="collab-card">
-                    <div class="collab-avatar" [class.av-owner]="user.role==='owner'" [class.av-editor]="user.role==='editor'" [class.av-viewer]="user.role==='viewer'">{{user.userEmail.charAt(0).toUpperCase()}}</div>
-                    <div class="collab-meta">
-                        <div class="collab-name">{{user.userEmail}}</div>
-                        <div class="collab-email">{{user.userEmail}}</div>
+                    <div class="collab-avatar" [class.av-owner]="user.role==='owner'" [class.av-editor]="user.role==='editor'" [class.av-viewer]="user.role==='viewer'" [class.av-respondent]="user.role==='respondent'">
+                        {{ user.userEmail.charAt(0).toUpperCase() }}
                     </div>
-                    <span class="badge" [class.badge-owner]="user.role==='owner'" [class.badge-editor]="user.role==='editor'" [class.badge-viewer]="user.role==='viewer'">{{user.role}}</span>
-              <button class="btn-del" title="Remove Collaborator">×</button>
+                    <div class="collab-meta">
+                        <div class="collab-name">{{ user.userEmail }}</div>
+                        <div class="collab-email">{{ user.userEmail }}</div>
+                    </div>
+                    <span class="badge" [class.badge-owner]="user.role==='owner'" [class.badge-editor]="user.role==='editor'" [class.badge-viewer]="user.role==='viewer'" [class.badge-respondent]="user.role==='respondent'">
+                        {{ user.role === 'owner' ? '👑 Owner' : (user.role | titlecase) }}
+                    </span>
+                    @if (user.role !== 'owner') {
+                        <button class="btn-del" type="button" title="Remove Collaborator" [disabled]="isLoading()" (click)="removeUser(user)">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    }
                 </div>
             }
-            <div class="collab-card">
-              <div class="collab-avatar av-owner">AJ</div>
-              <div class="collab-meta">
-                <div class="collab-name">Alex Johnson</div>
-                <div class="collab-email">[EMAIL_ADDRESS]</div>
-              </div>
-              <span class="badge badge-owner">👑 Owner</span>
-            </div>
-
-            <div class="collab-card">
-              <div class="collab-avatar av-editor">SC</div>
-              <div class="collab-meta">
-                <div class="collab-name">Sarah Chen</div>
-                <div class="collab-email">sarahcompany.com</div>
-              </div>
-              <span class="badge badge-editor">Editor</span>
-              <button class="btn-del" title="Remove Collaborator">×</button>
-            </div>
-
-            <div class="collab-card">
-              <div class="collab-avatar av-viewer">JS</div>
-              <div class="collab-meta">
-                <div class="collab-name">John Smith</div>
-                <div class="collab-email">[EMAIL_ADDRESS]</div>
-              </div>
-              <span class="badge badge-viewer">Viewer</span>
-              <button class="btn-del" title="Remove Collaborator">×</button>
-            </div>
-          </div>
-
+        </div>
     </div>
+
+    <!-- Assignment in progress overlay (z-index: 99999) -->
+    @if (isLoading()) {
+        <div class="assignment-loader-overlay">
+            <div class="loader-content-box">
+                <div class="fb-spinner-wrapper">
+                    <div class="fb-spinner-ring"></div>
+                    <mat-icon class="fb-spinner-icon">sync</mat-icon>
+                </div>
+                <span class="assignment-loader-text">{{ loadingMessage() }}</span>
+            </div>
+        </div>
+    }
 </div>
+

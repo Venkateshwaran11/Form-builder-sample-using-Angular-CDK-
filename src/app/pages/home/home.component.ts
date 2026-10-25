@@ -11,6 +11,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { AuthService } from '../../core/analytics/services/auth.service';
 import { SnackbarService } from '../../shared/services/snackbar.service';
+import { FormTemplateService, FormTemplate } from '../../shared/services/form-template.service';
+import { TemplateGalleryDialogComponent } from '../../shared/dialogs/template-gallery-dialog/template-gallery-dialog.component';
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -45,7 +48,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   private copiedStateTimeout?: ReturnType<typeof setTimeout>;
   destroy$ = inject(DestroyRef);
   private dialog = inject(MatDialog);
-  private authService = inject(AuthService)
+  private authService = inject(AuthService);
+  private templateService = inject(FormTemplateService);
+  templates = this.templateService.getTemplates();
   ngOnInit() {
     this.searchSubject.pipe(takeUntilDestroyed(this.destroy$),
       debounce((query) => (query === '' ? timer(0) : timer(300))),
@@ -94,6 +99,29 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   createNewForm() {
     this.router.navigate(['/builder/new']);
+  }
+
+  openTemplateGallery() {
+    const ref = this.dialog.open(TemplateGalleryDialogComponent, {
+      width: '980px',
+      maxWidth: '96vw',
+      panelClass: 'mat-dialog-clean',
+      data: {}
+    });
+
+    ref.afterClosed().subscribe((selected: FormTemplate | null) => {
+      if (selected) {
+        this.useTemplate(selected);
+      }
+    });
+  }
+
+  useTemplate(tmpl: any) {
+    if (!tmpl || tmpl.id === 'blank') {
+      this.createNewForm();
+    } else {
+      this.router.navigate(['/builder/new'], { queryParams: { template: tmpl.id } });
+    }
   }
 
   editForm(form: any) {

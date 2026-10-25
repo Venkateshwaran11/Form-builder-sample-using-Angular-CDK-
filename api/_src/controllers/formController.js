@@ -349,3 +349,44 @@ exports.userAssignment = async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 }
+
+exports.unassignUser = async (req, res) => {
+  try {
+    const { formId, userId, email } = req.body;
+
+    if (!formId) {
+      return res.status(400).json({ error: 'Form ID is required' });
+    }
+
+    const form = await Form.findById(formId);
+    if (!form) {
+      return res.status(404).json({ error: 'Form not found' });
+    }
+
+    if (!form.assignments || form.assignments.length === 0) {
+      return res.status(404).json({ error: 'No assignments found for this form' });
+    }
+
+    const targetIndex = form.assignments.findIndex(item =>
+      (userId && item.userId === userId) || (email && item.userEmail === email)
+    );
+
+    if (targetIndex === -1) {
+      return res.status(404).json({ error: 'Collaborator not found on this form' });
+    }
+
+    if (form.assignments[targetIndex].role === 'owner') {
+      return res.status(400).json({ error: 'Cannot remove the form owner' });
+    }
+
+    form.assignments.splice(targetIndex, 1);
+    await form.save();
+
+    return res.status(200).json({
+      message: 'Collaborator removed successfully',
+      assignedUserList: form.assignments
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

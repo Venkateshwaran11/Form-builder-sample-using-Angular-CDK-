@@ -15,5 +15,7 @@ export class FormService {
     return this.http.post(`${this.baseUrl}/forms/assign-user`,payload)
   }
 
-
-}
+  unassignUser(payload: { formId: string; userId?: string; email?: string }){
+    return this.http.post(`${this.baseUrl}/forms/unassign-user`, payload);
+  }
+}

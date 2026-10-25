@@ -14,8 +14,229 @@
   background: #f1f5f9;
 }
 
+/* ========================================================
+   GOOGLE FORMS "START A NEW FORM" TEMPLATES SECTION
+   ======================================================== */
+.templates-section {
+  background: #f1f3f4;
+  border-bottom: 1px solid #dadce0;
+  padding: 24px 40px 30px 40px;
+}
+
+.templates-section-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.templates-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.templates-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.templates-main-title {
+  font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #202124;
+}
+
+.templates-badge {
+  background: #ede7f6;
+  color: #673ab7;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.gallery-trigger-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #5f6368;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.gallery-trigger-btn:hover {
+  background: #e8eaed;
+  color: #202124;
+}
+.gallery-trigger-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.templates-cards-row {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+}
+
+.template-card-box {
+  width: 140px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.template-card-box:hover {
+  transform: translateY(-3px);
+}
+
+.template-thumb {
+  height: 104px;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(60,64,67,0.1);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.template-card-box:hover .template-thumb {
+  border-color: #673ab7;
+  box-shadow: 0 4px 10px rgba(103, 58, 183, 0.2);
+}
+
+.blank-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.plus-svg {
+  width: 48px;
+  height: 48px;
+  transition: transform 0.2s;
+}
+.blank-card-box:hover .plus-svg {
+  transform: scale(1.12);
+}
+
+.thumb-top-bar {
+  height: 24px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.thumb-bar-line {
+  height: 4px;
+  width: 55%;
+  background: rgba(255,255,255,0.85);
+  border-radius: 2px;
+}
+.thumb-bar-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: rgba(255,255,255,0.9);
+}
+
+.thumb-content-lines {
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: #fafafa;
+  flex: 1;
+}
+.thumb-line-box {
+  background: #ffffff;
+  border: 1px solid #ebebeb;
+  border-radius: 3px;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.line-sm {
+  height: 3px;
+  background: #9aa0a6;
+  border-radius: 2px;
+}
+.line-xs {
+  height: 3px;
+  width: 90%;
+  background: #dadce0;
+  border-radius: 2px;
+}
+
+.thumb-hover-actions {
+  position: absolute;
+  inset: 0;
+  background: rgba(32, 33, 36, 0.65);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.template-card-box:hover .thumb-hover-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+.thumb-use-btn {
+  background: #673ab7;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.thumb-use-btn mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+}
+
+.template-card-label {
+  margin-top: 8px;
+  padding: 0 2px;
+}
+.tmpl-title {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #202124;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.tmpl-category {
+  font-size: 0.72rem;
+  color: #5f6368;
+}
+
 .dashboard-container {
-  padding: 40px;
+  padding: 30px 40px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;

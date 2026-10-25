@@ -1,4 +1,69 @@
 <div class="dashboard-page">
+
+  <!-- GOOGLE FORMS "START A NEW FORM" TEMPLATES SECTION -->
+  <section class="templates-section">
+    <div class="templates-section-inner">
+      <div class="templates-header">
+        <div class="templates-title-group">
+          <span class="templates-main-title">Start a new form</span>
+          <span class="templates-badge">Google Forms Templates</span>
+        </div>
+
+        <button class="gallery-trigger-btn" (click)="openTemplateGallery()" title="Browse all Google Form templates">
+          <span>Template gallery</span>
+          <mat-icon>unfold_more</mat-icon>
+        </button>
+      </div>
+
+      <!-- Quick Template Cards Row -->
+      <div class="templates-cards-row">
+        
+        <!-- Blank Form Card -->
+        <div class="template-card-box blank-card-box" (click)="createNewForm()" title="Create Blank Form">
+          <div class="template-thumb blank-thumb">
+            <svg class="plus-svg" viewBox="0 0 54 54" fill="none">
+              <rect x="23" y="11" width="8" height="32" rx="4" fill="#673ab7"/>
+              <rect x="11" y="23" width="32" height="8" rx="4" fill="#673ab7"/>
+            </svg>
+          </div>
+          <div class="template-card-label">
+            <span class="tmpl-title">Blank form</span>
+          </div>
+        </div>
+
+        <!-- Predefined Template Cards -->
+        <div class="template-card-box" *ngFor="let tmpl of templates" (click)="useTemplate(tmpl)" [title]="'Use ' + tmpl.title">
+          <div class="template-thumb">
+            <div class="thumb-top-bar" [style.background]="tmpl.color">
+              <span class="thumb-bar-line"></span>
+              <mat-icon class="thumb-bar-icon">{{ tmpl.icon }}</mat-icon>
+            </div>
+            <div class="thumb-content-lines">
+              <div class="thumb-line-box">
+                <span class="line-sm" style="width: 65%;"></span>
+                <span class="line-xs"></span>
+              </div>
+              <div class="thumb-line-box">
+                <span class="line-sm" style="width: 45%;"></span>
+                <span class="line-xs"></span>
+              </div>
+            </div>
+            <div class="thumb-hover-actions">
+              <button class="thumb-use-btn" (click)="$event.stopPropagation(); useTemplate(tmpl)">
+                <mat-icon>add</mat-icon> Use
+              </button>
+            </div>
+          </div>
+          <div class="template-card-label">
+            <span class="tmpl-title" [title]="tmpl.title">{{ tmpl.title }}</span>
+            <span class="tmpl-category">{{ tmpl.category }}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <div class="dashboard-container">
     <div class="dashboard-header">
       <div class="header-left">

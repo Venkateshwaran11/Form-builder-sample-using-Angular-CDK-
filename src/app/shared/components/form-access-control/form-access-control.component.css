@@ -323,9 +323,29 @@
     background: #dbeafe;
     color: #2563eb;
 }
+.av-viewer {
+    background: #f1f5f9;
+    color: #475569;
+}
+.av-respondent {
+    background: #f3e8ff;
+    color: #9333ea;
+}
+.badge-owner {
+    background: #fef3c7;
+    color: #b45309;
+}
+.badge-editor {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
 .badge-viewer {
     background: #f1f5f9;
     color: #475569;
+}
+.badge-respondent {
+    background: #f3e8ff;
+    color: #7e22ce;
 }
 
 .badge {
@@ -338,11 +358,126 @@
 .btn-del {
     background: none;
     border: none;
-    color: #ef4444;
-    font-size: 13px;
+    color: #94a3b8;
     cursor: pointer;
-    padding: 3px;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-left: 2px;
+}
+
+.btn-del:hover {
+    color: #ef4444;
+    background: #fee2e2;
+}
+
+.btn-del mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+}
+
+.add-user-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    background: #94a3b8;
+}
+
+.btn-del:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ── Assignment in Progress Overlay (z-index: 99999) ── */
+.assignment-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    animation: fadeInOverlay 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.loader-content-box {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 26px 36px;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    min-width: 220px;
+    text-align: center;
+    transform: scale(1);
+    animation: scaleInBox 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.loader-content-box .fb-spinner-wrapper {
+    position: relative;
+    width: 58px;
+    height: 58px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+
+.loader-content-box .fb-spinner-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 3.5px solid #e2e8f0;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spinRing 0.9s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+}
+
+.loader-content-box .fb-spinner-icon {
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
+    color: #2563eb;
+    animation: spinIcon 2s linear infinite;
+}
+
+.assignment-loader-text {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleInBox {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spinRing {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes spinIcon {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
