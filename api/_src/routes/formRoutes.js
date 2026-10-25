@@ -20,4 +20,5 @@ router.post('/:id/versions/:version/restore', auth, formController.restoreVersio
 
 // User Role assignment
 router.post('/assign-user', auth, formController.userAssignment);
+router.post('/unassign-user', auth, formController.unassignUser);
 module.exports = router;

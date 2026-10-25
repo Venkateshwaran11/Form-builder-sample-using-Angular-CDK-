@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "dev": "bash run.sh",
     "build": "npx ng build && cp -r dist/browser/* dist/ && rm -rf dist/browser",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

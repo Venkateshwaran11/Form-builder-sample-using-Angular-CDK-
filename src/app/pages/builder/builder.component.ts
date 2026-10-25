@@ -20,8 +20,8 @@ import { AiFormGeneratorDialogComponent} from '../../shared/dialogs/ai-form-gene
 import { FormVersionService } from '../../services/version.service';
 import { VersionHistoryDialogComponent } from '../../shared/dialogs/version-history-dialog/version-history-dialog.component';
 import { FormAccessControlComponent } from '../../shared/components/form-access-control/form-access-control.component';
-// import { FormTemplateService, FormTemplate } from '../../shared/services/form-template.service';
-// import { TemplateGalleryDialogComponent } from '../../shared/dialogs/template-gallery-dialog/template-gallery-dialog.component';
+import { FormTemplateService, FormTemplate } from '../../shared/services/form-template.service';
+import { TemplateGalleryDialogComponent } from '../../shared/dialogs/template-gallery-dialog/template-gallery-dialog.component';
 @Component({
   selector: 'app-builder',
   standalone: true,
@@ -68,7 +68,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
     public builderTools: BuilderTools,
     private authService:AuthService,
     private aiFormService: AiFormService,
-    // private templateService: FormTemplateService
+    private templateService: FormTemplateService
   ) { }
 
   ngOnInit(): void {
@@ -80,24 +80,22 @@ export class BuilderComponent implements OnInit, OnDestroy {
       if (id && id !== 'new') {
         this.loadForm(id);
       }
-    //    else {
-    //     const tmplId = this.route.snapshot.queryParamMap.get('template');
-    //     if (tmplId) {
-    //       this.loadTemplate(tmplId);
-    //     } else {
-    //       this.createNewForm(true);
-    //     }
-    //   }
-    // });
+       else {
+        const tmplId = this.route.snapshot.queryParamMap.get('template');
+        if (tmplId) {
+          this.loadTemplate(tmplId);
+        } else {
+          this.createNewForm(true);
+        }
+      }
+    });
 
-    // this.route.queryParamMap.subscribe(queryParams => {
-    //   const tmplId = queryParams.get('template');
-    //   if (tmplId && (!this.id || this.id === 'new')) {
-    //     this.loadTemplate(tmplId);
-    //   }
-    else{
-      this.createNewForm(true);
-    }
+    this.route.queryParamMap.subscribe(queryParams => {
+      const tmplId = queryParams.get('template');
+      if (tmplId && (!this.id || this.id === 'new')) {
+        this.loadTemplate(tmplId);
+      }
+    
     });
 
     this.initFlowise();
@@ -580,6 +578,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.isDirty = false;
     this.submittedData = null;
     this.id = '';
+    this.userAssignments = [];
 
     // Explicitly update URL to clean out stale IDs if needed
     // if (!afterSave) {
@@ -587,45 +586,45 @@ export class BuilderComponent implements OnInit, OnDestroy {
     // }
   }
 
-  // openTemplateGallery() {
-  //   const ref = this.dialog.open(TemplateGalleryDialogComponent, {
-  //     width: '980px',
-  //     maxWidth: '96vw',
-  //     panelClass: 'mat-dialog-clean',
-  //     data: {}
-  //   });
+  openTemplateGallery() {
+    const ref = this.dialog.open(TemplateGalleryDialogComponent, {
+      width: '980px',
+      maxWidth: '96vw',
+      panelClass: 'mat-dialog-clean',
+      data: {}
+    });
 
-  //   ref.afterClosed().subscribe((selected: FormTemplate | null) => {
-  //     if (selected) {
-  //       if (selected.id === 'blank') {
-  //         this.createNewForm();
-  //       } else {
-  //         this.loadTemplate(selected.id);
-  //       }
-  //     }
-  //   });
-  // }
+    ref.afterClosed().subscribe((selected: FormTemplate | null) => {
+      if (selected) {
+        if (selected.id === 'blank') {
+          this.createNewForm();
+        } else {
+          this.loadTemplate(selected.id);
+        }
+      }
+    });
+  }
 
-  // loadTemplate(templateId: string) {
-  //   const tmpl = this.templateService.getTemplateById(templateId);
-  //   if (!tmpl) return;
+  loadTemplate(templateId: string) {
+    const tmpl = this.templateService.getTemplateById(templateId);
+    if (!tmpl) return;
 
-  //   this.hasAiPendingChanges = false;
-  //   this.aiPreviousState = null;
-  //   this.formConfig = JSON.parse(JSON.stringify(tmpl.fields));
-  //   this.formDisplayName = tmpl.title;
-  //   this.formName = tmpl.id + '_' + Math.random().toString(36).substring(2, 7);
-  //   this.id = '';
-  //   this.isDirty = true;
-  //   this.submittedData = null;
+    this.hasAiPendingChanges = false;
+    this.aiPreviousState = null;
+    this.formConfig = JSON.parse(JSON.stringify(tmpl.fields));
+    this.formDisplayName = tmpl.title;
+    this.formName = tmpl.id + '_' + Math.random().toString(36).substring(2, 7);
+    this.id = '';
+    this.isDirty = true;
+    this.submittedData = null;
 
-  //   this.snackBar.open(`"${tmpl.title}" template loaded successfully!`, 'OK', {
-  //     duration: 3500,
-  //     horizontalPosition: 'right',
-  //     verticalPosition: 'top',
-  //     panelClass: ['snackbar-success']
-  //   });
-  // }
+    this.snackBar.open(`"${tmpl.title}" template loaded successfully!`, 'OK', {
+      duration: 3500,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['snackbar-success']
+    });
+  }
 
   saveConfig() {
     if(!this.formBuilderSaveValidations()){
@@ -654,6 +653,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
           'OK', 
           { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-success'] }
         )
+        if(res.assignments){
+          this.userAssignments = res.assignments;
+        }
         // this.snackBar.open(`"${this.formDisplayName}" saved successfully!`, 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-success'] });
         // this.createNewForm(true);
       },

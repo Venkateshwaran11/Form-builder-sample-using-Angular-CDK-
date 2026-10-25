@@ -1,0 +1,235 @@
+<div class="template-dialog-wrapper">
+  
+  <!-- Dialog Header -->
+  <div class="dialog-header">
+    <div class="header-left">
+      <div class="logo-wrap">
+        <mat-icon class="brand-icon">dynamic_form</mat-icon>
+      </div>
+      <div>
+        <h2 class="dialog-title">Google Form Template Gallery</h2>
+        <p class="dialog-subtitle">Choose from professionally crafted templates or start blank</p>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="close-btn" (click)="close()" title="Close Gallery">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search & Category Filters Bar -->
+   @if(!previewTemplate()){
+  <div class="filters-bar" >
+    <div class="search-box">
+      <mat-icon>search</mat-icon>
+      <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Search templates by title, keywords or tags...">
+      @if(searchQuery()){
+        <button (click)="searchQuery.set('')" class="clear-search-btn">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+
+    <div class="category-pills">
+      @for (cat of categories; track cat){
+      <button  
+              class="cat-pill" 
+              [class.active]="selectedCategory() === cat"
+              (click)="setCategory(cat)">
+        {{ cat }}
+      </button>
+      }
+    </div>
+  </div>
+   }
+  <!-- Dialog Body (Templates Grid OR Preview View) -->
+  <div class="dialog-body">
+
+    <!-- 1. TEMPLATES GRID VIEW -->
+     @if(!previewTemplate()){
+    <div class="templates-grid">
+      
+      <!-- Blank Form Card -->
+      <div class="template-card blank-card" (click)="selectTemplate({ id: 'blank', title: 'Untitled Form', fields: [], category: 'General', color: '#673ab7', icon: 'add', description: 'Start from scratch', tags: [] })">
+        <div class="card-thumb blank-thumb">
+          <div class="plus-icon-circle">
+            <mat-icon>add</mat-icon>
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-title-row">
+            <h3 class="card-title">Blank Form</h3>
+          </div>
+          <p class="card-desc">Start building your form with a clean, empty canvas.</p>
+          <div class="card-footer">
+            <span class="category-badge">Custom</span>
+            <span class="use-action-link">Start Blank &rarr;</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Template Cards -->
+      <div class="template-card" *ngFor="let tmpl of filteredTemplates()">
+        <!-- Miniature Preview Thumbnail with Themed Stripe -->
+        <div class="card-thumb" (click)="openPreview(tmpl)">
+          <div class="thumb-accent-bar" [style.background]="tmpl.color">
+            <span class="accent-title-line"></span>
+            <mat-icon class="thumb-icon">{{ tmpl.icon }}</mat-icon>
+          </div>
+          <div class="thumb-skeletons">
+            <div class="skel-row">
+              <span class="skel-label" style="width: 70%;"></span>
+              <span class="skel-input"></span>
+            </div>
+            <div class="skel-row">
+              <span class="skel-label" style="width: 50%;"></span>
+              <span class="skel-input"></span>
+            </div>
+          </div>
+          <!-- Hover Overlay -->
+          <div class="thumb-hover-overlay">
+            <button class="overlay-btn preview-btn" (click)="$event.stopPropagation(); openPreview(tmpl)">
+              <mat-icon>visibility</mat-icon> Preview
+            </button>
+            <button class="overlay-btn use-btn" (click)="$event.stopPropagation(); selectTemplate(tmpl)">
+              <mat-icon>check</mat-icon> Use Template
+            </button>
+          </div>
+        </div>
+
+        <div class="card-info">
+          <div class="card-title-row">
+            <h3 class="card-title" [title]="tmpl.title">{{ tmpl.title }}</h3>
+          </div>
+          <p class="card-desc" [title]="tmpl.description">{{ tmpl.description }}</p>
+          
+          <div class="card-footer">
+            <span class="category-badge" [style.color]="tmpl.color" [style.background]="tmpl.color + '1a'">
+              {{ tmpl.category }}
+            </span>
+            <span class="fields-count">
+              <mat-icon style="font-size: 13px; width: 13px; height: 13px; vertical-align: middle;">format_list_bulleted</mat-icon>
+              {{ tmpl.fields.length }} questions
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+      }
+    <!-- Empty search result state -->
+    @if(!previewTemplate() && filteredTemplates().length === 0){
+    <div class="empty-search">
+      <mat-icon>search_off</mat-icon>
+      <h4>No templates match your search</h4>
+      <p>Try searching for a different term or browse all categories.</p>
+      <button class="reset-search-btn" (click)="searchQuery.set(''); selectedCategory.set('All')">View All Templates</button>
+    </div>
+  }
+    <!-- 2. IN-DIALOG LIVE GOOGLE FORMS PREVIEW -->
+    @if(previewTemplate() ){
+    <div class="preview-container" *ngIf="previewTemplate() as tmpl">
+      
+      <!-- Preview Navigation Bar -->
+      <div class="preview-subnav" #tmpl>
+        <button class="back-btn" (click)="closePreview()">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Back to Templates</span>
+        </button>
+
+        <div class="preview-actions">
+          <button class="use-template-btn" (click)="selectTemplate(tmpl)">
+            <mat-icon>content_copy</mat-icon>
+            <span>Use This Template</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Google Form Canvas Mockup -->
+      <div class="gf-form-canvas">
+        
+        <!-- Header Card -->
+        <div class="gf-header-card">
+          <div class="gf-top-accent" [style.background]="tmpl.color"></div>
+          <div class="gf-header-content">
+            <h1 class="gf-title">{{ tmpl.title }}</h1>
+            <p class="gf-description">{{ tmpl.description }}</p>
+            <div class="gf-required-line">
+              <span class="required-asterisk">*</span> Indicates required question
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Cards -->
+        <div class="gf-questions-list">
+          <div class="gf-question-card" *ngFor="let field of tmpl.fields; let idx = index" [class.active-border]="idx === 1">
+            
+            <div class="gf-q-header">
+              <span class="gf-q-label">{{ field.label }}</span>
+              <span class="required-asterisk" *ngIf="field.required">*</span>
+              <span class="type-pill">{{ field.type }}</span>
+            </div>
+
+            <!-- Field Input Mockup -->
+            <div class="gf-input-wrapper">
+              <ng-container [ngSwitch]="field.type">
+                
+                <input *ngSwitchCase="'text'" type="text" class="gf-text-input" [placeholder]="field.placeholder || 'Your answer'" disabled>
+                <input *ngSwitchCase="'email'" type="email" class="gf-text-input" [placeholder]="field.placeholder || 'your.email@example.com'" disabled>
+                <input *ngSwitchCase="'mobile'" type="text" class="gf-text-input" [placeholder]="field.placeholder || 'Phone number'" disabled>
+                <input *ngSwitchCase="'number'" type="number" class="gf-text-input" [placeholder]="field.placeholder || '0'" disabled>
+                <textarea *ngSwitchCase="'textarea'" class="gf-textarea-input" [placeholder]="field.placeholder || 'Your answer'" disabled></textarea>
+
+                <div *ngSwitchCase="'radio'" class="gf-choices-list">
+                  <div class="gf-choice-item" *ngFor="let opt of field.options; let i = index">
+                    <div class="gf-radio-circle" [class.checked]="i === 0"></div>
+                    <span class="gf-choice-text">{{ opt.label }}</span>
+                  </div>
+                </div>
+
+                <div *ngSwitchCase="'checkbox'" class="gf-choices-list">
+                  <div class="gf-choice-item" *ngFor="let opt of field.options">
+                    <div class="gf-checkbox-box"></div>
+                    <span class="gf-choice-text">{{ opt.label }}</span>
+                  </div>
+                </div>
+
+                <div *ngSwitchCase="'dropdown'" class="gf-dropdown-mock">
+                  <span>{{ field.options?.[0]?.label || 'Choose an option' }}</span>
+                  <mat-icon>arrow_drop_down</mat-icon>
+                </div>
+
+                <div *ngSwitchCase="'file'" class="gf-file-mock">
+                  <mat-icon>upload_file</mat-icon>
+                  <span>Add file (Max 10 MB)</span>
+                </div>
+
+                <div *ngSwitchCase="'toggle'" class="gf-toggle-mock">
+                  <mat-icon style="color: #673ab7;">toggle_on</mat-icon>
+                  <span>Yes / No Boolean</span>
+                </div>
+
+                <div *ngSwitchCase="'date'" class="gf-date-mock">
+                  <span>mm/dd/yyyy</span>
+                  <mat-icon>calendar_today</mat-icon>
+                </div>
+
+                <div *ngSwitchDefault class="gf-text-input">
+                  <span>{{ field.placeholder || 'Your answer' }}</span>
+                </div>
+
+              </ng-container>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+    }
+  </div>
+
+</div>
