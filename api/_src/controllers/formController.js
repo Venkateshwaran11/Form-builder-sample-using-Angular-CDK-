@@ -319,6 +319,9 @@ exports.userAssignment = async (req, res) => {
       }
       const existingAssignment = form.assignments.find(item => item.userEmail === email);
       if(existingAssignment){
+        if(existingAssignment.role==='owner'){
+          return res.status(400).json({ error: "Owner can't be changed" });
+        }
         existingAssignment.role = role;
       }
       else{
