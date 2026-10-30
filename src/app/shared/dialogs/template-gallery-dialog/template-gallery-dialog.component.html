@@ -216,6 +216,13 @@
                   <mat-icon>calendar_today</mat-icon>
                 </div>
 
+                <div *ngSwitchCase="'table'" class="gf-table-mock">
+                  <div class="gf-table-mock-row">
+                    <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #673ab7;">table_chart</mat-icon>
+                    <span>Table Grid ({{ (field.columns?.length || 2) }} columns)</span>
+                  </div>
+                </div>
+
                 <div *ngSwitchDefault class="gf-text-input">
                   <span>{{ field.placeholder || 'Your answer' }}</span>
                 </div>

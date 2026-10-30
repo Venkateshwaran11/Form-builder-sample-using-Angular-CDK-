@@ -1,0 +1,373 @@
+<div class="table-field-container" [formGroup]="group">
+  <div class="table-field-header">
+    <div class="table-title-group">
+      <label class="table-field-label">
+        <mat-icon class="table-label-icon">table_chart</mat-icon>
+        <span>{{ field.label }}</span>
+        <span *ngIf="field.required" class="req">*</span>
+      </label>
+      <span class="table-field-hint" *ngIf="field.placeholder">{{ field.placeholder }}</span>
+    </div>
+
+    <!-- Edit Mode: Add Column Button in Header -->
+    <div class="table-builder-actions" *ngIf="mode === 'edit'">
+      <button type="button" class="tbl-btn primary-tbl-btn sm" (click)="openAddColumnModal()" title="Add a column to this table">
+        <mat-icon>add</mat-icon>
+        <span>Add Column</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       BUILDER MODE: CANVAS TABLE & COLUMN CONFIGURATION
+       ======================================================== -->
+  @if (mode === 'edit') {
+    <div class="builder-table-wrapper">
+
+      <!-- Column Editor / Creator Popover Card -->
+      <div class="column-editor-card" *ngIf="isAddingColumn">
+        <div class="col-editor-header">
+          <div class="col-editor-title">
+            <mat-icon>view_column</mat-icon>
+            <h4>Add New Column</h4>
+          </div>
+          <button type="button" class="btn-icon close-btn" (click)="cancelAddColumn()" title="Cancel">&times;</button>
+        </div>
+
+        <div class="col-editor-body">
+          <div class="col-editor-row">
+            <label>Column Label:</label>
+            <input type="text" [ngModel]="newColumn.label" (ngModelChange)="onNewColumnLabelChange($event)" [ngModelOptions]="{standalone: true}" placeholder="e.g. Quantity, Price, Notes" class="col-input">
+          </div>
+
+          <div class="col-editor-row">
+            <label>Column Key (JSON):</label>
+            <input type="text" [(ngModel)]="newColumn.name" [ngModelOptions]="{standalone: true}" placeholder="e.g. quantity" class="col-input code-input">
+          </div>
+
+          <div class="col-editor-row">
+            <label>Field Type:</label>
+            <select [(ngModel)]="newColumn.type" [ngModelOptions]="{standalone: true}" class="col-input select-input">
+              <option *ngFor="let t of availableColumnTypes" [value]="t.type">{{ t.label }}</option>
+            </select>
+          </div>
+
+          <!-- Currency Settings -->
+          <div class="col-editor-row" *ngIf="newColumn.type === 'currency'">
+            <label>Currency:</label>
+            <select [(ngModel)]="newColumn.currency" [ngModelOptions]="{standalone: true}" class="col-input select-input">
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="INR">INR (₹)</option>
+              <option value="GBP">GBP (£)</option>
+            </select>
+          </div>
+
+          <!-- Dropdown Options -->
+          <div class="col-editor-row options-block" *ngIf="newColumn.type === 'dropdown'">
+            <label>Dropdown Options:</label>
+            <div class="col-options-list">
+              <div class="col-opt-item" *ngFor="let opt of newColumn.options; let oIdx = index">
+                <input type="text" [(ngModel)]="opt.label" [ngModelOptions]="{standalone: true}" placeholder="Label" class="col-input sm">
+                <input type="text" [(ngModel)]="opt.value" [ngModelOptions]="{standalone: true}" placeholder="Value" class="col-input sm">
+                <button type="button" class="btn-icon remove-opt-btn" (click)="removeOptionFromEditingColumn(newColumn, oIdx)" title="Remove">&times;</button>
+              </div>
+              <button type="button" class="tbl-btn secondary-tbl-btn sm" (click)="addOptionToEditingColumn(newColumn)">+ Add Option</button>
+            </div>
+          </div>
+
+          <div class="col-editor-row checkbox-row">
+            <label class="col-checkbox-label">
+              <input type="checkbox" [(ngModel)]="newColumn.required" [ngModelOptions]="{standalone: true}">
+              <span>Required Column</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="col-editor-footer">
+          <button type="button" class="tbl-btn cancel-btn" (click)="cancelAddColumn()">Cancel</button>
+          <button type="button" class="tbl-btn primary-tbl-btn" (click)="saveNewColumn()">Save Column</button>
+        </div>
+      </div>
+
+      <!-- Column Edit Modal Card -->
+      <div class="column-editor-card editing" *ngIf="editingColumnIndex !== null && editingColumn">
+        <div class="col-editor-header">
+          <div class="col-editor-title">
+            <mat-icon>edit</mat-icon>
+            <h4>Edit Column: {{ editingColumn.label }}</h4>
+          </div>
+          <button type="button" class="btn-icon close-btn" (click)="cancelEditColumn()" title="Cancel">&times;</button>
+        </div>
+
+        <div class="col-editor-body">
+          <div class="col-editor-row">
+            <label>Column Label:</label>
+            <input type="text" [(ngModel)]="editingColumn.label" [ngModelOptions]="{standalone: true}" class="col-input">
+          </div>
+
+          <div class="col-editor-row">
+            <label>Column Key (JSON):</label>
+            <input type="text" [(ngModel)]="editingColumn.name" [ngModelOptions]="{standalone: true}" class="col-input code-input">
+          </div>
+
+          <div class="col-editor-row">
+            <label>Field Type:</label>
+            <select [(ngModel)]="editingColumn.type" [ngModelOptions]="{standalone: true}" class="col-input select-input">
+              <option *ngFor="let t of availableColumnTypes" [value]="t.type">{{ t.label }}</option>
+            </select>
+          </div>
+
+          <div class="col-editor-row" *ngIf="editingColumn.type === 'currency'">
+            <label>Currency:</label>
+            <select [(ngModel)]="editingColumn.currency" [ngModelOptions]="{standalone: true}" class="col-input select-input">
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="INR">INR (₹)</option>
+              <option value="GBP">GBP (£)</option>
+            </select>
+          </div>
+
+          <div class="col-editor-row options-block" *ngIf="editingColumn.type === 'dropdown'">
+            <label>Dropdown Options:</label>
+            <div class="col-options-list">
+              <div class="col-opt-item" *ngFor="let opt of editingColumn.options; let oIdx = index">
+                <input type="text" [(ngModel)]="opt.label" [ngModelOptions]="{standalone: true}" placeholder="Label" class="col-input sm">
+                <input type="text" [(ngModel)]="opt.value" [ngModelOptions]="{standalone: true}" placeholder="Value" class="col-input sm">
+                <button type="button" class="btn-icon remove-opt-btn" (click)="removeOptionFromEditingColumn(editingColumn, oIdx)" title="Remove">&times;</button>
+              </div>
+              <button type="button" class="tbl-btn secondary-tbl-btn sm" (click)="addOptionToEditingColumn(editingColumn)">+ Add Option</button>
+            </div>
+          </div>
+
+          <div class="col-editor-row checkbox-row">
+            <label class="col-checkbox-label">
+              <input type="checkbox" [(ngModel)]="editingColumn.required" [ngModelOptions]="{standalone: true}">
+              <span>Required Column</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="col-editor-footer">
+          <button type="button" class="tbl-btn cancel-btn" (click)="cancelEditColumn()">Cancel</button>
+          <button type="button" class="tbl-btn primary-tbl-btn" (click)="saveEditColumn()">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- Visual Preview Table in Builder -->
+      <div class="table-scroll-container">
+        <table class="form-grid-table preview-grid">
+          <thead>
+            <tr>
+              <th class="th-num">#</th>
+              <th *ngFor="let col of field.columns; let cIdx = index" class="th-col">
+                <div class="th-content">
+                  <div class="th-title-row">
+                    <span class="th-label">{{ col.label }}</span>
+                    <span *ngIf="col.required" class="req">*</span>
+                  </div>
+                  <div class="th-meta-row">
+                    <span class="col-type-chip">
+                      <mat-icon>{{ getColumnTypeIcon(col.type) }}</mat-icon>
+                      <span>{{ getColumnTypeLabel(col.type) }}</span>
+                    </span>
+                    <div class="col-actions">
+                      <button type="button" class="btn-icon edit-col-btn" (click)="openEditColumnModal(cIdx)" title="Edit Column">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button type="button" class="btn-icon delete-col-btn" *ngIf="(field.columns?.length || 0) > 1" (click)="deleteColumn(cIdx, $event)" title="Delete Column">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </th>
+              <th class="th-action-preview">
+                <button type="button" class="add-col-header-btn" (click)="openAddColumnModal()" title="Add another column">
+                  <mat-icon>add</mat-icon>
+                  <span>Column</span>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Sample Preview Rows -->
+            <tr class="preview-row">
+              <td class="td-num">1</td>
+              <td *ngFor="let col of field.columns">
+                <div class="preview-cell-mock">
+                  <span class="mock-input">{{ col.placeholder || ('Sample ' + col.label) }}</span>
+                </div>
+              </td>
+              <td class="td-action">
+                <mat-icon class="disabled-icon">delete_outline</mat-icon>
+              </td>
+            </tr>
+            <tr class="preview-row">
+              <td class="td-num">2</td>
+              <td *ngFor="let col of field.columns">
+                <div class="preview-cell-mock">
+                  <span class="mock-input">{{ col.placeholder || ('Sample ' + col.label) }}</span>
+                </div>
+              </td>
+              <td class="td-action">
+                <mat-icon class="disabled-icon">delete_outline</mat-icon>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="builder-table-footer">
+        <div class="builder-hint">
+          <mat-icon>info</mat-icon>
+          <span>Respondents can dynamically add, fill, and delete rows in Preview or Live mode. Click "Add Column" or any column header above to customize columns.</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================
+       RUNTIME / VIEWER MODE: INTERACTIVE EDITABLE DATA GRID
+       ======================================================== -->
+  @else {
+    <div class="runtime-table-wrapper">
+      <div class="table-scroll-container">
+        <table class="form-grid-table runtime-grid">
+          <thead>
+            <tr>
+              <th class="th-num">#</th>
+              <th *ngFor="let col of field.columns" class="th-col-runtime">
+                <span>{{ col.label }}</span>
+                <span *ngIf="col.required" class="req">*</span>
+              </th>
+              <th class="th-action"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of rows; let rIdx = index" class="runtime-row">
+              <td class="td-num">{{ rIdx + 1 }}</td>
+              
+              <td *ngFor="let col of field.columns" class="td-input-cell">
+                
+                <!-- Text / Email / Phone / General -->
+                <ng-container *ngIf="col.type === 'text' || col.type === 'email'">
+                  <input [type]="col.type === 'email' ? 'email' : 'text'" 
+                         [(ngModel)]="row[col.name]" 
+                         (ngModelChange)="onCellChange()" 
+                         [ngModelOptions]="{standalone: true}"
+                         [placeholder]="col.placeholder || ('Enter ' + col.label)"
+                         class="cell-input">
+                </ng-container>
+
+                <!-- Number -->
+                <ng-container *ngIf="col.type === 'number'">
+                  <input type="number" 
+                         [(ngModel)]="row[col.name]" 
+                         (ngModelChange)="onCellChange()" 
+                         [ngModelOptions]="{standalone: true}"
+                         [placeholder]="col.placeholder || '0'"
+                         class="cell-input">
+                </ng-container>
+
+                <!-- Currency -->
+                <ng-container *ngIf="col.type === 'currency'">
+                  <div class="currency-input-wrapper">
+                    <span class="curr-sign">{{ getCurrencySymbol(col.currency) }}</span>
+                    <input type="number" 
+                           [(ngModel)]="row[col.name]" 
+                           (ngModelChange)="onCellChange()" 
+                           [ngModelOptions]="{standalone: true}"
+                           [placeholder]="col.placeholder || '0.00'"
+                           class="cell-input has-prefix">
+                  </div>
+                </ng-container>
+
+                <!-- Date -->
+                <ng-container *ngIf="col.type === 'date'">
+                  <input type="date" 
+                         [(ngModel)]="row[col.name]" 
+                         (ngModelChange)="onCellChange()" 
+                         [ngModelOptions]="{standalone: true}"
+                         class="cell-input date-input">
+                </ng-container>
+
+                <!-- Dropdown -->
+                <ng-container *ngIf="col.type === 'dropdown'">
+                  <select [(ngModel)]="row[col.name]" 
+                          (ngModelChange)="onCellChange()" 
+                          [ngModelOptions]="{standalone: true}"
+                          class="cell-input select-input">
+                    <option value="">Select {{ col.label }}...</option>
+                    <option *ngFor="let opt of col.options" [value]="opt.value">{{ opt.label }}</option>
+                  </select>
+                </ng-container>
+
+                <!-- Checkbox -->
+                <ng-container *ngIf="col.type === 'checkbox'">
+                  <div class="cell-checkbox-wrap">
+                    <input type="checkbox" 
+                           [(ngModel)]="row[col.name]" 
+                           (ngModelChange)="onCellChange()" 
+                           [ngModelOptions]="{standalone: true}"
+                           class="cell-checkbox">
+                  </div>
+                </ng-container>
+
+                <!-- Textarea -->
+                <ng-container *ngIf="col.type === 'textarea'">
+                  <textarea rows="1" 
+                            [(ngModel)]="row[col.name]" 
+                            (ngModelChange)="onCellChange()" 
+                            [ngModelOptions]="{standalone: true}"
+                            [placeholder]="col.placeholder || ''"
+                            class="cell-input textarea-input"></textarea>
+                </ng-container>
+
+              </td>
+
+              <!-- Action: Delete Row -->
+              <td class="td-action">
+                <button type="button" class="btn-icon remove-row-btn" (click)="removeRow(rIdx)" title="Delete Row">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </td>
+            </tr>
+
+            <!-- Empty Rows State -->
+            <tr *ngIf="rows.length === 0" class="empty-rows-tr">
+              <td [attr.colspan]="(field.columns?.length || 0) + 2" class="empty-rows-td">
+                <div class="empty-table-state">
+                  <mat-icon class="empty-icon">playlist_add</mat-icon>
+                  <p>No rows added yet.</p>
+                  <button type="button" class="tbl-btn primary-tbl-btn sm" (click)="addRow()">
+                    <mat-icon>add</mat-icon>
+                    <span>Add First Row</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Bottom Runtime Bar: Add Row & Stats -->
+      <div class="runtime-table-footer">
+        <button type="button" class="tbl-btn primary-tbl-btn" (click)="addRow()">
+          <mat-icon>add</mat-icon>
+          <span>Add Row</span>
+        </button>
+
+        <div class="footer-stats">
+          <span class="row-count-badge">{{ rows.length }} {{ rows.length === 1 ? 'row' : 'rows' }}</span>
+          <button type="button" class="clear-rows-btn" *ngIf="rows.length > 0" (click)="clearRows()">Clear All</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Error Message when required -->
+  <div class="error-msg" *ngIf="group.get(field.name)?.touched && group.get(field.name)?.invalid">
+    <span *ngIf="group.get(field.name)?.errors?.['required']">{{ field.label }} is required (must contain at least one entry).</span>
+  </div>
+</div>

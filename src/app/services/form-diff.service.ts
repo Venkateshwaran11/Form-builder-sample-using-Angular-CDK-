@@ -139,6 +139,17 @@ export class FormDiffService {
       });
     }
 
+    // Check columns for table fields
+    const colsA = JSON.stringify(a.columns || []);
+    const colsB = JSON.stringify(b.columns || []);
+    if (colsA !== colsB) {
+      diffs.push({
+        property: 'columns',
+        oldValue: a.columns,
+        newValue: b.columns
+      });
+    }
+
     return diffs;
   }
 }

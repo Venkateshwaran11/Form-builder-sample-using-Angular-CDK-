@@ -22,6 +22,7 @@ export class BuilderTools {
     { type: 'radio', label: 'Radio Buttons', icon: 'radio_button_checked' },
     { type: 'toggle', label: 'Boolean', icon: 'toggle_on' },
     { type: 'heading', label: 'Heading', icon: 'view_headline' },
-    { type: 'file', label: 'File Upload', icon: 'file_upload' }
+    { type: 'file', label: 'File Upload', icon: 'file_upload' },
+    { type: 'table', label: 'Table', icon: 'table_chart' }
   ]).asReadonly();
 }

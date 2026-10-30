@@ -5,11 +5,27 @@ export type FieldType =
   'number' | 'decimal' | 'currency' | 'mobile' |
   'date' | 'timestamp' | 
   'checkbox' | 'toggle' | 'radio' | 
-  'dropdown' | 'multiselect' | 'heading' | 'file';
+  'dropdown' | 'multiselect' | 'heading' | 'file' | 'table';
 
 export interface FieldOption {
   label: string;
   value: any;
+}
+
+export type TableColumnType = 
+  'text' | 'number' | 'date' | 'dropdown' | 'checkbox' | 'email' | 'currency' | 'textarea';
+
+export interface TableColumnConfig {
+  id?: string;
+  name: string;
+  label: string;
+  type: TableColumnType;
+  placeholder?: string;
+  options?: FieldOption[];      // For dropdown/select columns
+  required?: boolean;
+  currency?: string;            // USD, EUR, INR, GBP, etc.
+  defaultValue?: any;
+  width?: string;
 }
 
 export interface FieldConfig {
@@ -36,6 +52,11 @@ export interface FieldConfig {
   isEditing?: boolean;
   isAiAdded?: boolean;
   isAiModified?: boolean;
+
+  // Table specific configuration
+  columns?: TableColumnConfig[];
+  minRows?: number;
+  maxRows?: number;
 }
 
 // versioning and Diffing Types 
