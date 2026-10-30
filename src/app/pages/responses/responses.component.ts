@@ -74,6 +74,17 @@ export class ResponsesComponent implements OnInit {
 
   formatData(value: any): string {
     if (value === null || value === undefined) return '-';
+    if (Array.isArray(value)) {
+      if (value.length === 0) return '0 rows';
+      const summaries = value.map(r => {
+        if (typeof r === 'object' && r !== null) {
+          const vals = Object.values(r).filter(v => v !== '' && v !== null && v !== undefined);
+          return vals.join(' / ');
+        }
+        return String(r);
+      }).filter(Boolean);
+      return `${value.length} ${value.length === 1 ? 'row' : 'rows'}: [ ${summaries.join(', ')} ]`;
+    }
     if (typeof value === 'object') return JSON.stringify(value);
     return String(value);
   }

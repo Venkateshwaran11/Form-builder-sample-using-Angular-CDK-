@@ -2,7 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitte
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { FieldConfig } from './models/field-config.interface';
+import { FieldConfig, TableColumnConfig } from './models/field-config.interface';
 import { DynamicFieldComponent } from './dynamic-field/dynamic-field.component';
 import { MatIconModule } from '@angular/material/icon';
 import { BuilderTools } from '../shared/tools/builderTools';
@@ -418,7 +418,7 @@ export class DynamicFormComponent implements OnInit, OnChanges {
   createForm() {
     const group = this.fb.group({});
     for (let field of this.config) {
-      if (field.type==='heading'){
+      if (field.type === 'heading') {
         continue;
       }
       let validators: any[] = [];
@@ -426,7 +426,14 @@ export class DynamicFormComponent implements OnInit, OnChanges {
         validators = validators.concat(field.validations);
       }
       if (field.required) {
-        validators.push(Validators.required);
+        if (field.type === 'table') {
+          validators.push((ctrl: any) => {
+            const v = ctrl?.value;
+            return (Array.isArray(v) && v.length > 0) ? null : { required: true };
+          });
+        } else {
+          validators.push(Validators.required);
+        }
       }
       if (field.min) {
         validators.push(Validators.min(field.min));
@@ -434,7 +441,10 @@ export class DynamicFormComponent implements OnInit, OnChanges {
       if (field.max) {
         validators.push(Validators.max(field.max));
       }
-      group.addControl(field.name, this.fb.control((field.value !== undefined && field.value !== null) ? field.value : '', validators.length > 0 ? validators : null));
+      const initialVal = (field.value !== undefined && field.value !== null)
+        ? field.value
+        : (field.type === 'table' ? [] : '');
+      group.addControl(field.name, this.fb.control(initialVal, validators.length > 0 ? validators : null));
     }
     this.form = group;
   }
@@ -461,7 +471,11 @@ export class DynamicFormComponent implements OnInit, OnChanges {
       const tool = event.previousContainer.data[event.previousIndex];
 
       const newFieldType = tool.type;
-      const baseName = tool.label.toLowerCase().replace(/[^a-z0-9]/g, ''); //`field_${new Date().getTime()}`;
+      let baseName = tool.label.toLowerCase().replace(/[^a-z0-9]/g, '');
+      let count = 1;
+      while (this.config.some(f => f.name === baseName)) {
+        baseName = `${tool.label.toLowerCase().replace(/[^a-z0-9]/g, '')}_${count++}`;
+      }
       const newField: FieldConfig = {
         type: newFieldType,
         name: baseName,
@@ -474,14 +488,21 @@ export class DynamicFormComponent implements OnInit, OnChanges {
             { label: 'Option A', value: 'a' },
             { label: 'Option B', value: 'b' }
           ]
+          : undefined,
+        columns: newFieldType === 'table'
+          ? [
+            { id: 'col_1', name: 'item', label: 'Item / Description', type: 'text', placeholder: 'Enter item name...' },
+            { id: 'col_2', name: 'quantity', label: 'Quantity', type: 'number', placeholder: '0' },
+            { id: 'col_3', name: 'price', label: 'Price', type: 'currency', currency: 'USD', placeholder: '0.00' }
+          ]
           : undefined
       };
 
       // Add to config at exactly the last index
       this.config.splice(this.config.length, 0, newField);
       // Update reactive form
-      const validators = newField.required ? [Validators.required] : [];
-      this.form.addControl(newField.name, this.fb.control('', validators));
+      const validators = newField.required ? (newField.type === 'table' ? [(c: any) => (Array.isArray(c?.value) && c.value.length > 0) ? null : { required: true }] : [Validators.required]) : [];
+      this.form.addControl(newField.name, this.fb.control(newField.type === 'table' ? [] : '', validators));
 
       // Automatically open the editor for this new field!
       this.editingIndex = this.config.length - 1;
@@ -542,7 +563,11 @@ export class DynamicFormComponent implements OnInit, OnChanges {
           validators = validators.concat(this.config[index].validations);
         }
         if (isRequired) {
-          validators.push(Validators.required);
+          if (this.config[index].type === 'table') {
+            validators.push((c: any) => (Array.isArray(c?.value) && c.value.length > 0) ? null : { required: true });
+          } else {
+            validators.push(Validators.required);
+          }
         }
         ctrl.setValidators(validators.length > 0 ? validators : null);
         ctrl.updateValueAndValidity();
@@ -622,6 +647,7 @@ export class DynamicFormComponent implements OnInit, OnChanges {
       checkbox: 'Checkbox',
       toggle: 'Toggle',
       file: 'File Upload',
+      table: 'Table / Grid',
       rating: 'Rating',
       slider: 'Slider',
       signature: 'Signature',
@@ -690,6 +716,8 @@ export class DynamicFormComponent implements OnInit, OnChanges {
   }
 
   onSubmit() {
+    this.form.markAllAsTouched();
+    if (this.form.invalid) return;
     this.submitForm.emit(this.form.value);
   }
 
@@ -743,7 +771,11 @@ export class DynamicFormComponent implements OnInit, OnChanges {
       const tool = builderTool
 
       const newFieldType = tool.type;
-      const baseName = tool.label.toLowerCase().replace(/[^a-z0-9]/g, ''); //`field_${new Date().getTime()}`;
+      let baseName = tool.label.toLowerCase().replace(/[^a-z0-9]/g, '');
+      let count = 1;
+      while (this.config.some(f => f.name === baseName)) {
+        baseName = `${tool.label.toLowerCase().replace(/[^a-z0-9]/g, '')}_${count++}`;
+      }
 
       const newField: FieldConfig = {
         type: newFieldType,
@@ -757,19 +789,69 @@ export class DynamicFormComponent implements OnInit, OnChanges {
             { label: 'Option A', value: 'a' },
             { label: 'Option B', value: 'b' }
           ]
+          : undefined,
+        columns: newFieldType === 'table'
+          ? [
+            { id: 'col_1', name: 'item', label: 'Item / Description', type: 'text', placeholder: 'Enter item name...' },
+            { id: 'col_2', name: 'quantity', label: 'Quantity', type: 'number', placeholder: '0' },
+            { id: 'col_3', name: 'price', label: 'Price', type: 'currency', currency: 'USD', placeholder: '0.00' }
+          ]
           : undefined
       };
 
       // Add to config at exactly the last index
       this.config.splice(this.config.length, 0, newField);
       // Update reactive form
-      const validators = newField.required ? [Validators.required] : [];
-      this.form.addControl(newField.name, this.fb.control('', validators));
+      const validators = newField.required ? (newField.type === 'table' ? [(c: any) => (Array.isArray(c?.value) && c.value.length > 0) ? null : { required: true }] : [Validators.required]) : [];
+      this.form.addControl(newField.name, this.fb.control(newField.type === 'table' ? [] : '', validators));
 
       // Automatically open the editor for this new field!
       this.editingIndex = this.config.length - 1;
-    this.configChange.emit(this.config)
+    this.configChange.emit(this.config);
+  }
 
+  // Table Column Management Methods
+  addTableColumn(field: FieldConfig) {
+    if (!field.columns) field.columns = [];
+    const count = field.columns.length + 1;
+    field.columns.push({
+      id: `col_${Date.now()}`,
+      name: `column_${count}`,
+      label: `Column ${count}`,
+      type: 'text',
+      placeholder: `Enter Column ${count}...`,
+      required: false,
+      currency: 'USD'
+    });
+    this.configChange.emit(this.config);
+  }
+
+  removeTableColumn(field: FieldConfig, index: number) {
+    if (field.columns && field.columns.length > 1) {
+      field.columns.splice(index, 1);
+      this.configChange.emit(this.config);
+    }
+  }
+
+  onTableColumnLabelChange(col: TableColumnConfig, newLabel: string) {
+    col.label = newLabel;
+    const autoKey = (newLabel || '').toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_');
+    if (autoKey) col.name = autoKey;
+    this.configChange.emit(this.config);
+  }
+
+  addTableColumnOption(col: TableColumnConfig) {
+    if (!col.options) col.options = [];
+    const count = col.options.length + 1;
+    col.options.push({ label: `Option ${count}`, value: `opt_${count}` });
+    this.configChange.emit(this.config);
+  }
+
+  removeTableColumnOption(col: TableColumnConfig, optIdx: number) {
+    if (col.options) {
+      col.options.splice(optIdx, 1);
+      this.configChange.emit(this.config);
+    }
   }
   
 }

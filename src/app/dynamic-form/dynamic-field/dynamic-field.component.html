@@ -32,6 +32,10 @@
   <app-form-file [field]="field" [group]="group"></app-form-file>
   }
 
+  @case ('table') {
+  <app-form-table [field]="field" [group]="group" [mode]="mode"></app-form-table>
+  }
+
 
 
   }

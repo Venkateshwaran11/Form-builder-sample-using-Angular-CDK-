@@ -71,9 +71,58 @@
         <div class="editor-row options-editor" *ngIf="field.type === 'decimal' || field.type === 'currency'"><label>Decimal Precision:</label><div class="options-list"><div class="option-row"><input type="number" [(ngModel)]="field.precision" [ngModelOptions]="{standalone: true}" placeholder="Precision"></div></div></div>
         <div class="editor-row options-editor" *ngIf="field.type === 'currency'"><label>Choose a Currency:</label><div class="options-list"><div class="option-row"><select [(ngModel)]="field.currency" [ngModelOptions]="{standalone: true}" class="editor-input"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="INR">INR</option></select></div></div></div>
         <div class="editor-row" *ngIf="field.type === 'heading'"><label>Text Alignment:</label><div class="alignment-options"><button type="button" [class.active]="field.headingTextAlignment === 'left'" (click)="field.headingTextAlignment = 'left'"><mat-icon>format_align_left</mat-icon></button><button type="button" [class.active]="field.headingTextAlignment === 'center'" (click)="field.headingTextAlignment = 'center'"><mat-icon>format_align_center</mat-icon></button><button type="button" [class.active]="field.headingTextAlignment === 'right'" (click)="field.headingTextAlignment = 'right'"><mat-icon>format_align_right</mat-icon></button></div></div>
+        <div class="editor-row options-editor table-columns-editor" *ngIf="field.type === 'table'">
+          <label>Table Columns:</label>
+          <div class="table-columns-manager">
+            <div *ngFor="let col of field.columns; let cIdx = index" class="table-col-item">
+              <div class="table-col-main">
+                <input type="text" [(ngModel)]="col.label" (ngModelChange)="onTableColumnLabelChange(col, $event)" [ngModelOptions]="{standalone: true}" placeholder="Column Label" class="editor-input col-lbl">
+                <input type="text" [(ngModel)]="col.name" [ngModelOptions]="{standalone: true}" placeholder="Key" class="editor-input col-key">
+                <select [(ngModel)]="col.type" [ngModelOptions]="{standalone: true}" class="editor-input col-type">
+                  <option value="text">Text</option>
+                  <option value="number">Number</option>
+                  <option value="currency">Currency</option>
+                  <option value="date">Date</option>
+                  <option value="dropdown">Dropdown</option>
+                  <option value="checkbox">Checkbox</option>
+                  <option value="email">Email</option>
+                  <option value="textarea">Textarea</option>
+                </select>
+                <label class="col-req-label" title="Required Column">
+                  <input type="checkbox" [(ngModel)]="col.required" [ngModelOptions]="{standalone: true}">
+                  <span>Req</span>
+                </label>
+                <button type="button" class="btn-icon remove-btn sm" *ngIf="(field.columns?.length || 0) > 1" (click)="removeTableColumn(field, cIdx)" title="Remove Column">&times;</button>
+              </div>
+
+              <div class="table-col-sub" *ngIf="col.type === 'currency'">
+                <label>Currency:</label>
+                <select [(ngModel)]="col.currency" [ngModelOptions]="{standalone: true}" class="editor-input col-curr">
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="INR">INR (₹)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+              </div>
+
+              <div class="table-col-sub" *ngIf="col.type === 'dropdown'">
+                <label>Options:</label>
+                <div class="col-dropdown-opts">
+                  <div *ngFor="let opt of col.options; let oIdx = index" class="option-row">
+                    <input type="text" [(ngModel)]="opt.label" [ngModelOptions]="{standalone: true}" placeholder="Label">
+                    <input type="text" [(ngModel)]="opt.value" [ngModelOptions]="{standalone: true}" placeholder="Value">
+                    <button type="button" class="btn-icon remove-btn sm" (click)="removeTableColumnOption(col, oIdx)">&times;</button>
+                  </div>
+                  <button type="button" class="add-btn sm" (click)="addTableColumnOption(col)">+ Add Option</button>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="add-btn sm" (click)="addTableColumn(field)">+ Add Column</button>
+          </div>
+        </div>
         <div class="editor-actions" [class.blur]="field.label === '' || field.name === ''"><button type="button" class="save-btn" (click)="toggleEdit(null,field)">Done Editing</button></div>
       </div>
-      <div class="field-content" [class.blur]="editingIndex === i && mode === 'edit'"><app-dynamic-field [field]="field" [group]="form"></app-dynamic-field>
+      <div class="field-content" [class.blur]="editingIndex === i && mode === 'edit'"><app-dynamic-field [field]="field" [group]="form" [mode]="mode"></app-dynamic-field>
       <button *ngIf="mode==='edit'" class="show-input-types btn-icon add-btn" type="button" title="Add new Field" (click)="viewOrHideConfigurations()">+</button></div>
     </div>
   </div>
@@ -98,6 +147,6 @@
   </div>
 </div>
   }
-  <button type="submit" [disabled]="form.invalid" class="action-btn save-btn" *ngIf="mode === 'view'"><mat-icon>save</mat-icon><span>Save</span></button>
+  <button type="submit" class="action-btn save-btn" [class.invalid-form]="form.invalid" *ngIf="mode === 'view'"><mat-icon>save</mat-icon><span>Save</span></button>
   <div class="submission-result" *ngIf="(jsonString | keyvalue).length > 0"><h3>✅ Form Successfully Submitted!</h3><p style="margin-bottom: 15px; color: #94a3b8; font-size: 0.9rem; margin-top:0;">Here is the resulting JSON payload extracted natively from your dynamically generated form.</p><pre>{{ jsonString | json }}</pre><button class="toggle-btn" style="background:#ef4444; margin-top: 15px;" (click)="jsonString = {}">Clear Results</button></div>
 </form>

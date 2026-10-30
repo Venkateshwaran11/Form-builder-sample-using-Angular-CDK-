@@ -353,6 +353,11 @@ export class BuilderComponent implements OnInit, OnDestroy {
       min: fullConfig?.min,
       max: fullConfig?.max,
       pattern: fullConfig?.pattern,
+      columns: fullConfig?.columns || ((type === 'table') ? [
+        { id: 'col_1', name: 'item', label: 'Item / Description', type: 'text', placeholder: 'Enter description...' },
+        { id: 'col_2', name: 'quantity', label: 'Quantity', type: 'number', placeholder: '0' },
+        { id: 'col_3', name: 'price', label: 'Price', type: 'currency', currency: 'USD', placeholder: '0.00' }
+      ] : undefined),
       isAiAdded: isAiAdded,
       isAiModified: isAiModified
     };
@@ -478,7 +483,12 @@ export class BuilderComponent implements OnInit, OnDestroy {
           headingTextAlignment: item.headingTextAlignment || 'left',
           min: item.min,
           max: item.max,
-          pattern: item.pattern
+          pattern: item.pattern,
+          columns: item.columns || (safeType === 'table' ? [
+            { id: 'col_1', name: 'item', label: 'Item / Description', type: 'text', placeholder: 'Enter description...' },
+            { id: 'col_2', name: 'quantity', label: 'Quantity', type: 'number', placeholder: '0' },
+            { id: 'col_3', name: 'price', label: 'Price', type: 'currency', currency: 'USD', placeholder: '0.00' }
+          ] : undefined)
         };
         sanitizedFields.push(field);
       }
@@ -688,7 +698,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
     { type: 'radio', label: 'Radio Buttons', icon: 'radio_button_checked' },
     { type: 'toggle', label: 'Boolean', icon: 'toggle_on' },
     { type: 'heading', label: 'Heading', icon: 'view_headline' },
-    { type: 'file', label: 'File Upload', icon: 'file_upload' }
+    { type: 'file', label: 'File Upload', icon: 'file_upload' },
+    { type: 'table', label: 'Table', icon: 'table_chart' }
   ];
 
   formConfig: FieldConfig[] = [];

@@ -7,6 +7,7 @@ import { FormSelectComponent } from '../fields/form-select.component';
 import { FormRadioComponent } from '../fields/form-radio.component';
 import { FormDateComponent } from '../fields/form-date.component';
 import { FormFileComponent } from '../fields/form-file.component';
+import { FormTableComponent } from '../fields/form-table.component';
 import { MatIcon } from "@angular/material/icon";
 
 @Component({
@@ -20,6 +21,7 @@ import { MatIcon } from "@angular/material/icon";
     FormRadioComponent,
     FormDateComponent,
     FormFileComponent,
+    FormTableComponent,
     MatIcon
   ],
   styleUrls: ['./dynamic-field.component.scss'],
@@ -28,8 +30,12 @@ import { MatIcon } from "@angular/material/icon";
 export class DynamicFieldComponent {
   @Input() field!: FieldConfig;
   @Input() group!: FormGroup;
+  @Input() mode: 'edit' | 'view' = 'edit';
 
   getComponentType(type: string): string {
+    if (type === 'table') {
+      return 'table';
+    }
     if (['text', 'textarea', 'email', 'password', 'number', 'decimal', 'currency', 'mobile'].includes(type)) {
       return 'input';
     }
