@@ -1,0 +1,201 @@
+{
+  "definition": {
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Form Builder API Documentation",
+      "version": "1.0.0",
+      "description": "Documentation for the Form Builder API"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:3000/api",
+        "description": "Local API server"
+      }
+    ],
+    "paths": {
+      "/auth/login": {
+        "post": {
+          "summary": "Log in a user",
+          "description": "Authenticate with an email address and password. On success, returns a JWT valid for one hour and the user document.",
+          "tags": [
+            "Authentication"
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "email",
+                    "password"
+                  ],
+                  "properties": {
+                    "email": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "user@example.com"
+                    },
+                    "password": {
+                      "type": "string",
+                      "format": "password",
+                      "example": "your-password"
+                    }
+                  }
+                },
+                "example": {
+                  "email": "user@example.com",
+                  "password": "your-password"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Login successful",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": [
+                      "message",
+                      "token",
+                      "user"
+                    ],
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Login successful"
+                      },
+                      "token": {
+                        "type": "string",
+                        "description": "JWT that expires after one hour."
+                      },
+                      "user": {
+                        "type": "object",
+                        "description": "The user document returned by the login endpoint.",
+                        "properties": {
+                          "_id": {
+                            "type": "string"
+                          },
+                          "username": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string",
+                            "format": "email"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "user",
+                              "admin"
+                            ]
+                          },
+                          "profileImage": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "lastLogin": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "isActive": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "password": {
+                            "type": "string",
+                            "description": "The current implementation returns the stored password hash in the user document."
+                          },
+                          "__v": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Missing credentials, unknown user, or invalid password",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  },
+                  "examples": {
+                    "missingCredentials": {
+                      "value": {
+                        "message": "All fields are required"
+                      }
+                    },
+                    "unknownUser": {
+                      "value": {
+                        "message": "User not found"
+                      }
+                    },
+                    "invalidPassword": {
+                      "value": {
+                        "message": "Invalid password"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Unexpected server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": [
+                      "message",
+                      "error"
+                    ],
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Failed to login user"
+                      },
+                      "error": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Error": {
+          "type": "object",
+          "required": [
+            "message"
+          ],
+          "properties": {
+            "message": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "apis": [
+    "./_src/routes/*.js"
+  ]
+}

@@ -1,11 +1,12 @@
 import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from "@angular/material/icon";
-import { RouterLink, RouterLinkActive } from "@angular/router";
+import { Router, RouterLink, RouterLinkActive } from "@angular/router";
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../../core/analytics/services/auth.service';
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog/confirm-dialog.component';
+import { swagger } from '../../../services/swagger.service';
 
 @Component({
   selector: 'app-navbar',
@@ -18,7 +19,7 @@ export class NavbarComponent {
    @Input() isViewerMode: boolean = false;
    private dialog = inject(MatDialog);
 
-   constructor(public authService: AuthService) { }
+   constructor(public authService: AuthService,private swg:swagger,private router: Router) { }
 
    async logout() {
      const ref = this.dialog.open(ConfirmDialogComponent, {
@@ -39,4 +40,15 @@ export class NavbarComponent {
        this.authService.logout();
      }
    }
+
+  async getApiDocs() {
+    this.router.navigate(['/api-docs']);
+    // this.swg.fetchAPIdocs().subscribe({
+    //   next: (res) => {
+    //     console.log(res)
+    //   }, error: (err) => {
+    //     console.log(err)
+    //   }
+    // })
+  }
 }

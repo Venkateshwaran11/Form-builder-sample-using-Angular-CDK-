@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const formController = require('../controllers/formController');
 const auth = require('../middlewares/auth.middleware');
-
+const {userAssignmentValidation,formVisibilityApiValidation} = require("../middlewares/formAccessControl.middleware")
 router.post('/', auth, formController.saveOrUpdateForm);
 router.post('/draft', auth, formController.saveDraft);
 
@@ -19,6 +19,7 @@ router.post('/:id/versions/:version/restore', auth, formController.restoreVersio
 
 
 // User Role assignment
-router.post('/assign-user', auth, formController.userAssignment);
+router.post('/assign-user', auth, userAssignmentValidation, formController.userAssignment);
+router.post('/formVisibility', auth,formVisibilityApiValidation,formController.formVisibility )
 router.post('/unassign-user', auth, formController.unassignUser);
 module.exports = router;

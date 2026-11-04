@@ -7,3 +7,20 @@
   overflow: hidden;
   box-sizing: border-box;
 }
+
+.main-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container.swagger-page {
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+.main-content.swagger-page {
+  overflow: visible;
+}

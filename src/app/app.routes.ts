@@ -7,6 +7,7 @@ import { LoginComponent } from './auth/login/login.component';
 import { authGuardGuard } from './guards/auth-guard.guard';
 import { unsavedChangesGuard } from './guards/unsaved-changes.guard';
 import { guestGuard } from './guards/guestGaurd';
+import { SwaggerComponent } from './shared/components/swagger/swagger.component';
 
 export const routes: Routes = [
   // { path: '', component: HomeComponent },
@@ -33,5 +34,10 @@ export const routes: Routes = [
     canActivate:[guestGuard]
   },
   { path: 'f/:id', loadComponent: () => import('./pages/viewer/viewer.component').then(m => m.ViewerComponent) },
-  { path: '**', redirectTo: '' }
+  { 
+    path: 'api-docs', 
+    component: SwaggerComponent 
+  },
+  { path: '**', redirectTo: '' },
+  
 ];

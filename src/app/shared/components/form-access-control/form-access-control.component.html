@@ -1,21 +1,9 @@
 <div>
     <div class="section-label">Form Visibility</div>
     <div class="visibityactions">
-        <button class="visiblityButtons" [class.active]="selectedVisibility === 'public'"
-            (click)="selectedVisibility = 'public'">
-            <mat-icon>public</mat-icon>
-            <span>Public</span>
-        </button>
-        <button class="visiblityButtons" [class.active]="selectedVisibility === 'restricted'"
-            (click)="selectedVisibility = 'restricted'">
-            <mat-icon>lock_person</mat-icon>
-            <span>Restricted</span>
-        </button>
-        <button class="visiblityButtons" [class.active]="selectedVisibility === 'private'"
-            (click)="selectedVisibility = 'private'">
-            <mat-icon>shield</mat-icon>
-            <span>Private</span>
-        </button>
+        <button type="button" class="visiblityButtons" [class.active]="visiblity() === 'Public'" (click)="updateVisibility('Public')"><mat-icon>public</mat-icon><span>Public</span></button>
+        <button type="button" class="visiblityButtons" [class.active]="visiblity() === 'Protected'" (click)="updateVisibility('Protected')"><mat-icon>lock_person</mat-icon><span>Protected</span></button>
+        <button type="button" class="visiblityButtons" [class.active]="visiblity() === 'Private'" (click)="updateVisibility('Private')"><mat-icon>shield</mat-icon><span>Private</span></button>
     </div>
     <div class="link-box">
         <input type="text" class="link-input" [value]="shareableUrl" readonly>
@@ -116,4 +104,4 @@
         </div>
     }
 </div>
-
+

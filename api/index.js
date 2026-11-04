@@ -3,8 +3,12 @@ const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-// const dns = require('node:dns');
-// dns.setServers(['1.1.1.1', '8.8.8.8']);
+const swaggerUi = require('swagger-ui-express');
+const swaggerJSDoc = require('swagger-jsdoc');
+if(process.env.ENVIRONMENT==='LOCAL'){
+  const dns = require('node:dns');
+  dns.setServers(['1.1.1.1', '8.8.8.8']);
+}
 const fs = require('fs');
 
 
@@ -50,6 +54,13 @@ await mongoose.connect(MONGODB_URI)
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 }
 connectDB()
+const swaggerOptions = require('./swagger.json');
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+app.use('/api-docs',swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api-json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
 const formRoutes = require('./_src/routes/formRoutes');
 const responseRoutes = require('./_src/routes/responseRoutes');
 const uploadRoutes = require('./_src/routes/uploadRoutes');

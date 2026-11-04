@@ -1,4 +1,4 @@
-import { Component, inject, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, inject, Input, Output, EventEmitter, model, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatOption } from '@angular/material/core';
@@ -14,6 +14,9 @@ export interface assignedUserList {
   userEmail: string;
   role: string;
 }
+
+export type FormVisibility = 'Public' | 'Private' | 'Protected';
+
 @Component({
   selector: 'app-form-access-control',
   standalone: true,
@@ -22,12 +25,11 @@ export interface assignedUserList {
   styleUrl: './form-access-control.component.css'
 })
 
-export class FormAccessControlComponent {
-  @Input() formId :string='';
-  selectedVisibility: 'public' | 'restricted' | 'private' = 'public';
-  @Input() assignedUserList : assignedUserList[] = [];
+export class FormAccessControlComponent implements OnInit {
+  @Input() formId: string = '';
+  visiblity = model.required<FormVisibility>();
+  @Input() assignedUserList: assignedUserList[] = [];
   @Output() assignedUserListChange = new EventEmitter<assignedUserList[]>();
-
   formService = inject(FormService);
   snackbar = inject(SnackbarService);
   private dialog = inject(MatDialog);
@@ -83,6 +85,9 @@ export class FormAccessControlComponent {
       }
     });
   }
+  ngOnInit(): void {
+
+  }
 
   removeUser(user: assignedUserList) {
     if (user.role === 'owner') {
@@ -128,5 +133,26 @@ export class FormAccessControlComponent {
         });
       }
     });
+  }
+
+  updateVisibility(value: FormVisibility) {
+    this.visiblity.set(value)
+    this.isLoading.set(true);
+    this.loadingMessage.set("Updating Form Visibility...")
+    this.formService.modifyFormVisibility({
+      formId: this.formId,
+      visibility: value
+    }).subscribe({
+      next: (res) => {
+        this.isLoading.set(false);
+        this.snackbar.success('Form visibility updated');
+
+        console.log(res)
+      }, error: (err) => {
+        console.log(err)
+        this.isLoading.set(false);
+
+      }
+    })
   }
 }

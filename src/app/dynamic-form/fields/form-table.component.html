@@ -231,7 +231,7 @@
        RUNTIME / VIEWER MODE: INTERACTIVE EDITABLE DATA GRID
        ======================================================== -->
   @else {
-    <div class="runtime-table-wrapper">
+    <div class="runtime-table-wrapper" [formArrayName]="field.name">
       <div class="table-scroll-container">
         <table class="form-grid-table runtime-grid">
           <thead>
@@ -245,7 +245,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of rows; let rIdx = index" class="runtime-row">
+            <tr *ngFor="let row of rows; let rIdx = index" class="runtime-row" [formGroupName]="rIdx">
               <td class="td-num">{{ rIdx + 1 }}</td>
               
               <td *ngFor="let col of field.columns" class="td-input-cell">
@@ -253,9 +253,8 @@
                 <!-- Text / Email / Phone / General -->
                 <ng-container *ngIf="col.type === 'text' || col.type === 'email'">
                   <input [type]="col.type === 'email' ? 'email' : 'text'" 
-                         [(ngModel)]="row[col.name]" 
-                         (ngModelChange)="onCellChange()" 
-                         [ngModelOptions]="{standalone: true}"
+                         [formControlName]="col.name"
+                         (input)="onCellChange()"
                          [placeholder]="col.placeholder || ('Enter ' + col.label)"
                          class="cell-input">
                 </ng-container>
@@ -263,9 +262,8 @@
                 <!-- Number -->
                 <ng-container *ngIf="col.type === 'number'">
                   <input type="number" 
-                         [(ngModel)]="row[col.name]" 
-                         (ngModelChange)="onCellChange()" 
-                         [ngModelOptions]="{standalone: true}"
+                         [formControlName]="col.name"
+                         (input)="onCellChange()"
                          [placeholder]="col.placeholder || '0'"
                          class="cell-input">
                 </ng-container>
@@ -275,9 +273,8 @@
                   <div class="currency-input-wrapper">
                     <span class="curr-sign">{{ getCurrencySymbol(col.currency) }}</span>
                     <input type="number" 
-                           [(ngModel)]="row[col.name]" 
-                           (ngModelChange)="onCellChange()" 
-                           [ngModelOptions]="{standalone: true}"
+                           [formControlName]="col.name"
+                           (input)="onCellChange()"
                            [placeholder]="col.placeholder || '0.00'"
                            class="cell-input has-prefix">
                   </div>
@@ -286,17 +283,15 @@
                 <!-- Date -->
                 <ng-container *ngIf="col.type === 'date'">
                   <input type="date" 
-                         [(ngModel)]="row[col.name]" 
-                         (ngModelChange)="onCellChange()" 
-                         [ngModelOptions]="{standalone: true}"
+                         [formControlName]="col.name"
+                         (input)="onCellChange()"
                          class="cell-input date-input">
                 </ng-container>
 
                 <!-- Dropdown -->
                 <ng-container *ngIf="col.type === 'dropdown'">
-                  <select [(ngModel)]="row[col.name]" 
-                          (ngModelChange)="onCellChange()" 
-                          [ngModelOptions]="{standalone: true}"
+                  <select [formControlName]="col.name"
+                          (change)="onCellChange()"
                           class="cell-input select-input">
                     <option value="">Select {{ col.label }}...</option>
                     <option *ngFor="let opt of col.options" [value]="opt.value">{{ opt.label }}</option>
@@ -307,9 +302,8 @@
                 <ng-container *ngIf="col.type === 'checkbox'">
                   <div class="cell-checkbox-wrap">
                     <input type="checkbox" 
-                           [(ngModel)]="row[col.name]" 
-                           (ngModelChange)="onCellChange()" 
-                           [ngModelOptions]="{standalone: true}"
+                           [formControlName]="col.name"
+                           (change)="onCellChange()"
                            class="cell-checkbox">
                   </div>
                 </ng-container>
@@ -317,12 +311,20 @@
                 <!-- Textarea -->
                 <ng-container *ngIf="col.type === 'textarea'">
                   <textarea rows="1" 
-                            [(ngModel)]="row[col.name]" 
-                            (ngModelChange)="onCellChange()" 
-                            [ngModelOptions]="{standalone: true}"
+                            [formControlName]="col.name"
+                            (input)="onCellChange()"
                             [placeholder]="col.placeholder || ''"
                             class="cell-input textarea-input"></textarea>
                 </ng-container>
+
+                <small class="cell-error" *ngIf="isCellInvalid(rIdx, col.name)">
+                  <ng-container *ngIf="getCellControl(rIdx, col.name)?.errors?.['required'] || getCellControl(rIdx, col.name)?.errors?.['requiredTrue']">
+                    {{ col.label }} is required.
+                  </ng-container>
+                  <ng-container *ngIf="getCellControl(rIdx, col.name)?.errors?.['email']">
+                    Enter a valid email address.
+                  </ng-container>
+                </small>
 
               </td>
 
@@ -367,7 +369,7 @@
   }
 
   <!-- Error Message when required -->
-  <div class="error-msg" *ngIf="group.get(field.name)?.touched && group.get(field.name)?.invalid">
+  <div class="error-msg" *ngIf="group.get(field.name)?.touched && group.get(field.name)?.errors?.['required']">
     <span *ngIf="group.get(field.name)?.errors?.['required']">{{ field.label }} is required (must contain at least one entry).</span>
   </div>
 </div>

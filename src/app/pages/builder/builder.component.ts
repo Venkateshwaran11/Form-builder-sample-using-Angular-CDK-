@@ -59,6 +59,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
    hasDraftChanges: boolean = false;
    public isSidebarCollapsed = signal(false);
    public userAssignments=[];
+   public formVisibility = signal<'Public'|'Private'|'Protected'>('Public');
   constructor(
     private snackBar: MatSnackBar,
     private ngZone: NgZone,
@@ -390,6 +391,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
           this.isDirty = false;
           this.id = form._id;
           this.userAssignments = form.assignments || []
+          this.formVisibility.update(() => form.visibility);
           this.currentVersion = form.currentPublishedVersion || null;
           this.hasDraftChanges = form.hasDraftChanges || false
         } else {

@@ -165,7 +165,7 @@
           </div>
         </div>
         <div class="sidebar-actions" *ngSwitchCase="'tab3'">
-          <app-form-access-control [formId]="this.id" [(assignedUserList)]="this.userAssignments"></app-form-access-control>
+          <app-form-access-control [formId]="this.id" [(assignedUserList)]="this.userAssignments" [(visiblity)]="formVisibility"></app-form-access-control>
         </div>
       </div>
     </div>
