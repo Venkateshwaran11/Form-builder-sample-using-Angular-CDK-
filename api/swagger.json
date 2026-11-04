@@ -73,52 +73,7 @@
                       },
                       "user": {
                         "type": "object",
-                        "description": "The user document returned by the login endpoint.",
-                        "properties": {
-                          "_id": {
-                            "type": "string"
-                          },
-                          "username": {
-                            "type": "string"
-                          },
-                          "email": {
-                            "type": "string",
-                            "format": "email"
-                          },
-                          "role": {
-                            "type": "string",
-                            "enum": [
-                              "user",
-                              "admin"
-                            ]
-                          },
-                          "profileImage": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "lastLogin": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "isActive": {
-                            "type": "boolean"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "updatedAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "password": {
-                            "type": "string",
-                            "description": "The current implementation returns the stored password hash in the user document."
-                          },
-                          "__v": {
-                            "type": "integer"
-                          }
-                        }
+                        "description": "The user document returned by the login endpoint."
                       }
                     }
                   }
@@ -131,55 +86,58 @@
                 "application/json": {
                   "schema": {
                     "$ref": "#/components/schemas/Error"
-                  },
-                  "examples": {
-                    "missingCredentials": {
-                      "value": {
-                        "message": "All fields are required"
-                      }
-                    },
-                    "unknownUser": {
-                      "value": {
-                        "message": "User not found"
-                      }
-                    },
-                    "invalidPassword": {
-                      "value": {
-                        "message": "Invalid password"
-                      }
-                    }
                   }
                 }
               }
             },
             "500": {
-              "description": "Unexpected server error",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "required": [
-                      "message",
-                      "error"
-                    ],
-                    "properties": {
-                      "message": {
-                        "type": "string",
-                        "example": "Failed to login user"
-                      },
-                      "error": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
+              "description": "Unexpected server error"
+            }
+          }
+        }
+      },
+      "/auth/profile": {
+        "get": {
+          "summary": "Get user profile",
+          "description": "Retrieve full profile information for the authenticated user, including custom fields.",
+          "tags": ["Authentication"],
+          "security": [{ "bearerAuth": [] }],
+          "responses": {
+            "200": {
+              "description": "User profile retrieved successfully"
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        },
+        "put": {
+          "summary": "Update user profile",
+          "description": "Update details and additional custom fields for the authenticated user.",
+          "tags": ["Authentication"],
+          "security": [{ "bearerAuth": [] }],
+          "responses": {
+            "200": {
+              "description": "Profile updated successfully"
+            },
+            "400": {
+              "description": "Invalid input or email conflict"
+            },
+            "401": {
+              "description": "Unauthorized"
             }
           }
         }
       }
     },
     "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
       "schemas": {
         "Error": {
           "type": "object",
