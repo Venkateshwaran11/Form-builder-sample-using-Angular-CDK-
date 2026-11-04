@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 // @ts-ignore
-import SwaggerUI from 'swagger-ui-dist';
+import SwaggerUIBundle from 'swagger-ui-dist/swagger-ui-bundle';
+// @ts-ignore
+import SwaggerUIStandalonePreset from 'swagger-ui-dist/swagger-ui-standalone-preset';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -13,12 +15,12 @@ export class SwaggerComponent implements OnInit {
   ngOnInit(): void {
     const apiDocsUrl = environment.apiUrl.replace(/\/api\/?$/, '/api-json');
 
-    SwaggerUI.SwaggerUIBundle({
+    SwaggerUIBundle({
       url: apiDocsUrl,
       dom_id: '#swagger-ui',
       presets: [
-        SwaggerUI.SwaggerUIBundle.presets.apis,
-        SwaggerUI.SwaggerUIStandalonePreset
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIStandalonePreset
       ],
       layout: 'BaseLayout'
     });
