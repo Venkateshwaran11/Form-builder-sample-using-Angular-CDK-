@@ -20,6 +20,9 @@
               "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
+            "allowedCommonJsDependencies": [
+              "swagger-ui-dist"
+            ],
             "assets": [
               "src/favicon.ico",
               "src/assets",
@@ -37,11 +40,19 @@
           },
           "configurations": {
             "production": {
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                },
+                "fonts": false
+              },
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1mb",
-                  "maximumError": "2mb"
+                  "maximumWarning": "2mb",
+                  "maximumError": "4mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -97,8 +108,5 @@
         }
       }
     }
-  },
-  "cli": {
-    "analytics": "8e023b59-7612-4a27-9ea2-9d554ce509ac"
   }
 }
