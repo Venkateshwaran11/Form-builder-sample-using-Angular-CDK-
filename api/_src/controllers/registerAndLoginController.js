@@ -80,9 +80,132 @@ exports.loginUser = async (req,res) => {
         await user.save();
 
         const token = jwt.sign({user:user._id},process.env.JWT_SECRET,{expiresIn:"1h"});
-        res.status(200).json({message:"Login successful",token,user});
+        const userObj = user.toObject();
+        delete userObj.password;
+        delete userObj.resetPasswordToken;
+        delete userObj.resetPasswordExpires;
+        res.status(200).json({message:"Login successful",token,user: userObj});
     }catch(err){
         console.error('Error logging in user:', err);
         res.status(500).json({ message: 'Failed to login user', error: err.message });
     }
 }
+
+exports.getProfile = async (req, res) => {
+    try {
+        const userId = req.user?.user || req.user?.id || req.user?._id;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized: Invalid user identification" });
+        }
+
+        const user = await User.findById(userId).select('-password -resetPasswordToken -resetPasswordExpires');
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ success: true, user });
+    } catch (err) {
+        console.error('Error fetching profile:', err);
+        res.status(500).json({ message: 'Failed to fetch user profile', error: err.message });
+    }
+};
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const userId = req.user?.user || req.user?.id || req.user?._id;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized: Invalid user identification" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const {
+            username,
+            email,
+            profileImage,
+            bio,
+            phone,
+            designation,
+            department,
+            organization,
+            location,
+            customFields,
+            currentPassword,
+            newPassword
+        } = req.body;
+
+        // Check and update email if changed
+        if (email && email.trim().toLowerCase() !== user.email) {
+            const normalizedEmail = email.trim().toLowerCase();
+            const existingUser = await User.findOne({ email: normalizedEmail, _id: { $ne: userId } });
+            if (existingUser) {
+                return res.status(400).json({ message: "Email is already registered by another account" });
+            }
+            user.email = normalizedEmail;
+        }
+
+        if (username && username.trim()) {
+            user.username = username.trim();
+        }
+
+        if (profileImage !== undefined) {
+            user.profileImage = profileImage;
+        }
+
+        if (bio !== undefined) user.bio = bio;
+        if (phone !== undefined) user.phone = phone;
+        if (designation !== undefined) user.designation = designation;
+        if (department !== undefined) user.department = department;
+        if (organization !== undefined) user.organization = organization;
+        if (location !== undefined) user.location = location;
+
+        // Process custom additional fields
+        if (Array.isArray(customFields)) {
+            user.customFields = customFields
+                .filter(cf => cf && typeof cf === 'object' && cf.label && cf.label.trim())
+                .map(cf => ({
+                    id: cf.id || ('cf_' + Math.random().toString(36).substring(2, 9)),
+                    label: cf.label.trim(),
+                    key: cf.key && cf.key.trim()
+                        ? cf.key.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_')
+                        : cf.label.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'),
+                    value: cf.value !== undefined && cf.value !== null ? String(cf.value) : '',
+                    type: cf.type || 'text'
+                }));
+        }
+
+        // Process password change if requested
+        if (newPassword) {
+            if (!currentPassword) {
+                return res.status(400).json({ message: "Current password is required to change password" });
+            }
+            const isMatch = await bcrypt.compare(currentPassword, user.password);
+            if (!isMatch) {
+                return res.status(400).json({ message: "Incorrect current password" });
+            }
+            if (newPassword.length < 6) {
+                return res.status(400).json({ message: "New password must be at least 6 characters long" });
+            }
+            user.password = await bcrypt.hash(newPassword, 10);
+        }
+
+        await user.save();
+
+        const sanitizedUser = user.toObject();
+        delete sanitizedUser.password;
+        delete sanitizedUser.resetPasswordToken;
+        delete sanitizedUser.resetPasswordExpires;
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: sanitizedUser
+        });
+    } catch (err) {
+        console.error('Error updating profile:', err);
+        res.status(500).json({ message: 'Failed to update profile', error: err.message });
+    }
+};
