@@ -19,15 +19,23 @@ export class AuthService {
         }
     }
 
-    setUser(user: any):void {
+    setUser(user: any): void {
         this.currentUser.set(user);
+        if (user) {
+            localStorage.setItem('user', JSON.stringify(user));
+        } else {
+            localStorage.removeItem('user');
+        }
     }
-    getUserid():string{
-       return this.currentUser()?._id??null;
+
+    getUserid(): string {
+       return this.currentUser()?._id ?? null;
     }
-    getAuthToken():string|null{
-        return localStorage.getItem('token')??null;
+
+    getAuthToken(): string | null {
+        return localStorage.getItem('token') ?? null;
     }
+
     logout() {
         this.currentUser.set(null);
         localStorage.removeItem('token');

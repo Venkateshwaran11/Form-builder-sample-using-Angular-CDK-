@@ -1,8 +1,6 @@
 <!-- Global Navbar -->
-<!-- <app-login (onLogin)="loginSuccess=true"></app-login> -->
-
-<nav class="global-navbar" *ngIf="!isViewerMode" >
-  <div class="brand" routerLink="/" style="cursor: pointer;">
+<nav class="global-navbar" *ngIf="!isViewerMode">
+  <div class="brand" routerLink="/dashboard" style="cursor: pointer;" title="Back to Dashboard">
     <mat-icon>dynamic_form</mat-icon>
     <span class="app-title">FormBuilder Pro</span>
   </div>
@@ -10,17 +8,24 @@
   <div class="spacer" style="flex: 1;"></div>
 
   <div class="nav-links" *ngIf="authService.currentUser()">
-    <button class = "api-docs" (click)="getApiDocs()"  title="api-docs"><mat-icon>api</mat-icon></button>
+    <button class="api-docs" (click)="getApiDocs()" title="API Documentation"><mat-icon>api</mat-icon></button>
     <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
   </div>
 
   <div class="user-profile" *ngIf="authService.currentUser()">
-    <div class="avatar" style="background:#e2e8f0; border-radius:50%; height:32px; width:32px; display:flex; align-items:center; justify-content:center; color:#64748b; margin-right:8px; overflow: hidden;">
-      <img *ngIf="authService.currentUser()?.['profileImage']" [src]="authService.currentUser()?.['profileImage']" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
-      <mat-icon *ngIf="!authService.currentUser()?.['profileImage']" style="font-size: 20px; width: 20px; height: 20px;">person</mat-icon>
+    <div class="profile-clickable" routerLink="/profile" routerLinkActive="active" title="Click to view & edit profile">
+      <div class="avatar">
+        <img *ngIf="authService.currentUser()?.['profileImage']" [src]="authService.currentUser()?.['profileImage']" alt="Profile">
+        <mat-icon *ngIf="!authService.currentUser()?.['profileImage']">person</mat-icon>
+      </div>
+      <div class="user-meta">
+        <span class="user-greeting">Welcome,</span>
+        <span class="user-name">{{ authService.currentUser()?.['username'] }}</span>
+      </div>
+      <mat-icon class="profile-chevron">chevron_right</mat-icon>
     </div>
-    <span style="font-weight:600; color:#334155; font-size:0.9rem; margin-right: 15px;">Welcome {{ authService.currentUser()?.['username'] }}!</span>
-    <button class="logout-btn" (click)="logout()">
+
+    <button class="logout-btn" (click)="logout()" title="Logout">
       <mat-icon>logout</mat-icon>
       Logout
     </button>

@@ -29,7 +29,8 @@ export const formSchema = {
                             "dropdown",
                             "multiselect",
                             "heading",
-                            "file"
+                            "file",
+                            "table"
                         ]
                     },
 
@@ -81,6 +82,22 @@ export const formSchema = {
                             },
                             required: ["label", "value"],
                             additionalProperties: false
+                        }
+                    },
+
+                    columns: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                id: { type: "string" },
+                                name: { type: "string" },
+                                label: { type: "string" },
+                                type: { type: "string" },
+                                placeholder: { type: "string" },
+                                required: { type: "boolean" },
+                                currency: { type: "string" }
+                            }
                         }
                     },
 

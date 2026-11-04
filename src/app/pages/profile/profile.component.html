@@ -1,0 +1,358 @@
+<div class="profile-page-wrapper">
+  
+  <!-- Header / Breadcrumbs -->
+  <header class="profile-page-header">
+    <div class="header-inner">
+      <a routerLink="/dashboard" class="back-link">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Back to Dashboard</span>
+      </a>
+      <div class="header-titles">
+        <h1 class="page-title">User Profile</h1>
+        <p class="page-subtitle">Manage your account information, personal details, and custom user fields.</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="spinner-circle"></div>
+    <span>Loading your profile details...</span>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="profile-main-container" *ngIf="!isLoading">
+
+    <!-- Top Identity Card -->
+    <section class="identity-card">
+      <div class="avatar-col">
+        <div class="avatar-preview-box">
+          <img *ngIf="userProfile.profileImage" [src]="userProfile.profileImage" alt="User Avatar" class="avatar-img">
+          <div *ngIf="!userProfile.profileImage" class="avatar-placeholder">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div class="avatar-overlay" *ngIf="isUploadingPhoto">
+            <div class="mini-spinner"></div>
+          </div>
+        </div>
+
+        <div class="avatar-actions">
+          <label class="btn-upload-photo" [class.disabled]="isUploadingPhoto">
+            <mat-icon>photo_camera</mat-icon>
+            <span>{{ isUploadingPhoto ? 'Uploading...' : 'Change Photo' }}</span>
+            <input type="file" accept="image/png, image/jpeg, image/webp" (change)="onPhotoSelected($event)" [disabled]="isUploadingPhoto" hidden>
+          </label>
+          <button *ngIf="userProfile.profileImage" class="btn-remove-photo" (click)="removePhoto()" title="Remove Photo">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="identity-meta">
+        <div class="identity-title-row">
+          <h2 class="user-display-name">{{ userProfile.username }}</h2>
+          <span class="badge badge-role">{{ userProfile.role || 'User' }}</span>
+          <span class="badge badge-status" [class.active]="userProfile.isActive">
+            <span class="status-dot"></span>
+            {{ userProfile.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+        <p class="user-display-email">
+          <mat-icon>mail_outline</mat-icon>
+          <span>{{ userProfile.email }}</span>
+        </p>
+        <div class="identity-extra-tags">
+          <span class="extra-tag" *ngIf="userProfile.organization">
+            <mat-icon>business</mat-icon>
+            {{ userProfile.organization }}
+          </span>
+          <span class="extra-tag" *ngIf="userProfile.designation">
+            <mat-icon>work_outline</mat-icon>
+            {{ userProfile.designation }}
+          </span>
+          <span class="extra-tag" *ngIf="userProfile.location">
+            <mat-icon>place</mat-icon>
+            {{ userProfile.location }}
+          </span>
+          <span class="extra-tag" *ngIf="userProfile.createdAt">
+            <mat-icon>calendar_today</mat-icon>
+            Joined {{ userProfile.createdAt | date:'mediumDate' }}
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Details Grid -->
+    <div class="profile-sections-grid">
+
+      <!-- Section: Standard User Details -->
+      <section class="profile-card">
+        <div class="card-header">
+          <div class="header-icon-box">
+            <mat-icon>badge</mat-icon>
+          </div>
+          <div>
+            <h3 class="card-title">Personal & Professional Details</h3>
+            <p class="card-desc">Standard user information associated with your account.</p>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="form-grid-2">
+            <!-- Username -->
+            <div class="form-group">
+              <label for="username">Full Name / Username <span class="required">*</span></label>
+              <div class="input-icon-wrapper">
+                <mat-icon class="field-icon">person</mat-icon>
+                <input id="username" type="text" [(ngModel)]="userProfile.username" placeholder="e.g. John Doe" class="form-control" required>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="email">Email Address <span class="required">*</span></label>
+              <div class="input-icon-wrapper">
+                <mat-icon class="field-icon">email</mat-icon>
+                <input id="email" type="email" [(ngModel)]="userProfile.email" placeholder="e.g. john@example.com" class="form-control" required>
+              </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <div class="input-icon-wrapper">
+                <mat-icon class="field-icon">phone</mat-icon>
+                <input id="phone" type="tel" [(ngModel)]="userProfile.phone" placeholder="e.g. +1 (555) 000-1234" class="form-control">
+              </div>
+            </div>
+
+            <!-- Job Title -->
+            <div class="form-group">
+              <label for="designation">Job Title / Designation</label>
+              <div class="input-icon-wrapper">
+                <mat-icon class="field-icon">work</mat-icon>
+                <input id="designation" type="text" [(ngModel)]="userProfile.designation" placeholder="e.g. Product Designer / Lead Developer" class="form-control">
+              </div>
+            </div>
+
+            <!-- Department -->
+            <div class="form-group">
+              <label for="department">Department</label>
+              <div class="input-icon-wrapper">
+                <mat-icon class="field-icon">corporate_fare</mat-icon>
+                <input id="department" type="text" [(ngModel)]="userProfile.department" placeholder="e.g. Engineering, Marketing" class="form-control">
+              </div>
+            </div>
+
+            <!-- Organization -->
+            <div class="form-group">
+              <label for="organization">Company / Organization</label>
+              <div class="input-icon-wrapper">
+                <mat-icon class="field-icon">business</mat-icon>
+                <input id="organization" type="text" [(ngModel)]="userProfile.organization" placeholder="e.g. Acme Corp" class="form-control">
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="form-group full-span">
+              <label for="location">Location / City</label>
+              <div class="input-icon-wrapper">
+                <mat-icon class="field-icon">location_on</mat-icon>
+                <input id="location" type="text" [(ngModel)]="userProfile.location" placeholder="e.g. San Francisco, CA / London, UK" class="form-control">
+              </div>
+            </div>
+
+            <!-- Bio -->
+            <div class="form-group full-span">
+              <label for="bio">Bio / About Me</label>
+              <textarea id="bio" [(ngModel)]="userProfile.bio" rows="3" placeholder="Tell us a little bit about yourself, your role, or what you work on..." class="form-control textarea-control"></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Additional Custom User Fields -->
+      <section class="profile-card custom-fields-card">
+        <div class="card-header card-header-flex">
+          <div class="header-left">
+            <div class="header-icon-box accent-box">
+              <mat-icon>add_box</mat-icon>
+            </div>
+            <div>
+              <h3 class="card-title">Additional User Fields</h3>
+              <p class="card-desc">Define custom dynamic fields for your profile (e.g. Employee ID, Socials, Timezone).</p>
+            </div>
+          </div>
+
+          <button class="btn-add-field" (click)="addCustomField()" type="button">
+            <mat-icon>add</mat-icon>
+            <span>Add New Field</span>
+          </button>
+        </div>
+
+        <div class="card-body">
+          <!-- Preset Chips for Quick Adding -->
+          <div class="presets-bar">
+            <span class="presets-label">Quick Suggestions:</span>
+            <div class="presets-chips">
+              <button *ngFor="let preset of quickFieldPresets" class="preset-chip" type="button" (click)="addPresetField(preset)">
+                <mat-icon>add_circle_outline</mat-icon>
+                <span>{{ preset.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-fields-state" *ngIf="!userProfile.customFields || userProfile.customFields.length === 0">
+            <div class="empty-icon-circle">
+              <mat-icon>playlist_add</mat-icon>
+            </div>
+            <h4>No additional fields added yet</h4>
+            <p>You can add personalized attributes such as Employee ID, LinkedIn, Github, Emergency Contact, etc.</p>
+            <button class="btn-empty-action" (click)="addCustomField()" type="button">
+              <mat-icon>add</mat-icon> Add Your First Custom Field
+            </button>
+          </div>
+
+          <!-- Custom Fields List -->
+          <div class="custom-fields-list" *ngIf="userProfile.customFields && userProfile.customFields.length > 0">
+            <div class="custom-field-row" *ngFor="let field of userProfile.customFields; let i = index">
+              <div class="field-col field-col-label">
+                <label>Field Name <span class="required">*</span></label>
+                <div class="input-icon-wrapper">
+                  <mat-icon class="field-icon">label</mat-icon>
+                  <input type="text" [(ngModel)]="field.label" (ngModelChange)="onFieldLabelChange(field)" placeholder="e.g. Employee ID" class="form-control" required>
+                </div>
+              </div>
+
+              <div class="field-col field-col-type">
+                <label>Data Type</label>
+                <div class="select-wrapper">
+                  <select [(ngModel)]="field.type" class="form-control select-control">
+                    <option value="text">Text</option>
+                    <option value="number">Number</option>
+                    <option value="date">Date</option>
+                    <option value="url">Link / URL</option>
+                    <option value="email">Email</option>
+                  </select>
+                  <mat-icon class="select-arrow">expand_more</mat-icon>
+                </div>
+              </div>
+
+              <div class="field-col field-col-value">
+                <label>Field Value</label>
+                <div class="input-icon-wrapper">
+                  <!-- Text or URL input -->
+                  <mat-icon class="field-icon" *ngIf="field.type === 'text'">edit_note</mat-icon>
+                  <mat-icon class="field-icon" *ngIf="field.type === 'url'">link</mat-icon>
+                  <mat-icon class="field-icon" *ngIf="field.type === 'number'">tag</mat-icon>
+                  <mat-icon class="field-icon" *ngIf="field.type === 'date'">event</mat-icon>
+                  <mat-icon class="field-icon" *ngIf="field.type === 'email'">alternate_email</mat-icon>
+
+                  <input *ngIf="field.type === 'text' || field.type === 'url'" [type]="field.type === 'url' ? 'url' : 'text'" [(ngModel)]="field.value" [placeholder]="field.type === 'url' ? 'https://...' : 'Enter ' + (field.label || 'value')" class="form-control">
+                  <input *ngIf="field.type === 'number'" type="number" [(ngModel)]="field.value" placeholder="Enter number" class="form-control">
+                  <input *ngIf="field.type === 'date'" type="date" [(ngModel)]="field.value" class="form-control">
+                  <input *ngIf="field.type === 'email'" type="email" [(ngModel)]="field.value" placeholder="email@example.com" class="form-control">
+                </div>
+              </div>
+
+              <div class="field-col-actions">
+                <button class="btn-delete-field" (click)="removeCustomField(i)" title="Remove this field" type="button">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Bottom Add Field Button -->
+            <div class="add-more-row">
+              <button class="btn-add-more" (click)="addCustomField()" type="button">
+                <mat-icon>add</mat-icon>
+                <span>Add another field</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Security & Password (Collapsible) -->
+      <section class="profile-card security-card">
+        <div class="card-header card-header-clickable" (click)="showPasswordSection = !showPasswordSection">
+          <div class="header-left">
+            <div class="header-icon-box security-box">
+              <mat-icon>lock</mat-icon>
+            </div>
+            <div>
+              <h3 class="card-title">Security & Password</h3>
+              <p class="card-desc">Change your password to keep your account secure.</p>
+            </div>
+          </div>
+          <button class="btn-toggle-section" type="button">
+            <mat-icon>{{ showPasswordSection ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </button>
+        </div>
+
+        <div class="card-body" *ngIf="showPasswordSection">
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="currentPassword">Current Password</label>
+              <div class="input-icon-wrapper">
+                <mat-icon class="field-icon">key</mat-icon>
+                <input id="currentPassword" [type]="showCurrentPassword ? 'text' : 'password'" [(ngModel)]="passwordData.currentPassword" placeholder="Enter current password" class="form-control">
+                <button class="btn-eye" type="button" (click)="showCurrentPassword = !showCurrentPassword">
+                  <mat-icon>{{ showCurrentPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="newPassword">New Password (min. 6 chars)</label>
+              <div class="input-icon-wrapper">
+                <mat-icon class="field-icon">lock_outline</mat-icon>
+                <input id="newPassword" [type]="showNewPassword ? 'text' : 'password'" [(ngModel)]="passwordData.newPassword" placeholder="Enter new password" class="form-control">
+                <button class="btn-eye" type="button" (click)="showNewPassword = !showNewPassword">
+                  <mat-icon>{{ showNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="confirmPassword">Confirm New Password</label>
+              <div class="input-icon-wrapper">
+                <mat-icon class="field-icon">lock_reset</mat-icon>
+                <input id="confirmPassword" [type]="showNewPassword ? 'text' : 'password'" [(ngModel)]="passwordData.confirmPassword" placeholder="Confirm new password" class="form-control">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Sticky Bottom Actions Bar -->
+    <div class="actions-bar">
+      <div class="actions-bar-inner">
+        <div class="actions-info">
+          <mat-icon class="save-status-icon" [class.changed]="hasChanges">
+            {{ hasChanges ? 'edit_note' : 'check_circle' }}
+          </mat-icon>
+          <span>{{ hasChanges ? 'You have unsaved changes' : 'All changes are saved' }}</span>
+        </div>
+
+        <div class="actions-buttons">
+          <button class="btn-secondary" type="button" (click)="discardChanges()" [disabled]="!hasChanges || isSaving">
+            <mat-icon>undo</mat-icon>
+            <span>Discard</span>
+          </button>
+          
+          <button class="btn-primary" type="button" (click)="saveProfile()" [disabled]="isSaving">
+            <div class="btn-spinner" *ngIf="isSaving"></div>
+            <mat-icon *ngIf="!isSaving">save</mat-icon>
+            <span>{{ isSaving ? 'Saving...' : 'Save Changes' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
