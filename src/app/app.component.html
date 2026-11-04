@@ -1,9 +1,9 @@
 
 
-<div class="app-container">
+<div class="app-container" [class.swagger-page]="isSwaggerPage">
   <!-- Routed Content Pages -->
   <app-navbar *ngIf="showNavbar" [isViewerMode]="isViewerMode"></app-navbar>
-  <div class="main-content" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+  <div class="main-content" [class.swagger-page]="isSwaggerPage">
     <router-outlet></router-outlet>
   </div>
 </div>

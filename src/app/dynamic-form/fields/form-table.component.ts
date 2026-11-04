@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { FieldConfig, TableColumnConfig, TableColumnType } from '../models/field-config.interface';
 
@@ -48,7 +48,7 @@ export class FormTableComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['field']) {
+    if (changes['field'] || changes['group']) {
       this.ensureDefaultColumns();
       this.initRows();
     }
@@ -65,23 +65,14 @@ export class FormTableComponent implements OnInit, OnChanges {
   }
 
   initRows() {
-    const ctrlVal = this.group?.get(this.field.name)?.value;
+    const control = this.group?.get(this.field.name);
+    const ctrlVal = control instanceof FormArray ? control.getRawValue() : control?.value;
     if (Array.isArray(ctrlVal) && ctrlVal.length > 0) {
-      // Restore saved rows from the reactive control value
       this.rows = ctrlVal.map(r => ({ ...r }));
-    } else if (this.rows.length > 0) {
-      // Control was reset (e.g. createForm() rebuilt the group) but rows
-      // are already in memory — push them back into the control so the
-      // validator sees them and doesn't incorrectly report invalid.
-      this.syncControlValue();
-    } else {
-      // Genuinely empty — ensure control value is [] but keep form pristine.
+    } else if (!this.rows.length) {
       this.rows = [];
-      const ctrl = this.group?.get(this.field.name);
-      if (ctrl) {
-        ctrl.setValue([], { emitEvent: false });
-      }
     }
+    this.rebuildFormArray(this.rows);
   }
 
   createEmptyRow(): any {
@@ -112,20 +103,71 @@ export class FormTableComponent implements OnInit, OnChanges {
   }
 
   onCellChange() {
-    this.syncControlValue();
+    const formArray = this.getTableFormArray();
+    if (!formArray) return;
+    this.rows = formArray.getRawValue();
+    formArray.markAsDirty();
   }
 
   syncControlValue(touch = false) {
     if (!this.group || !this.field) return;
-    const ctrl = this.group.get(this.field.name);
-    if (ctrl) {
-      // Spread into a new array so Angular's form engine always detects
-      // a reference change and reliably re-runs the validator.
-      ctrl.setValue([...this.rows], { emitEvent: true });
-      ctrl.markAsDirty();
-      if (touch) ctrl.markAsTouched();
-      ctrl.updateValueAndValidity();
+    const formArray = this.rebuildFormArray(this.rows);
+    formArray.markAsDirty();
+    if (touch) formArray.markAsTouched();
+  }
+
+  getTableFormArray(): FormArray | null {
+    const control = this.group?.get(this.field?.name);
+    return control instanceof FormArray ? control : null;
+  }
+
+  getCellControl(rowIndex: number, columnName: string): AbstractControl | null {
+    return this.getTableFormArray()?.at(rowIndex)?.get(columnName) ?? null;
+  }
+
+  isCellInvalid(rowIndex: number, columnName: string): boolean {
+    const control = this.getCellControl(rowIndex, columnName);
+    return !!control?.invalid && !!control.touched;
+  }
+
+  private createRowGroup(row: Record<string, any>): FormGroup {
+    const controls: Record<string, FormControl> = {};
+    for (const column of this.field.columns || []) {
+      const validators = [];
+      if (column.required) {
+        validators.push(column.type === 'checkbox' ? Validators.requiredTrue : Validators.required);
+      }
+      if (column.type === 'email') {
+        validators.push(Validators.email);
+      }
+      const value = row[column.name] !== undefined
+        ? row[column.name]
+        : column.defaultValue !== undefined
+          ? column.defaultValue
+          : column.type === 'checkbox' ? false : '';
+      controls[column.name] = new FormControl(value, validators);
     }
+    return new FormGroup(controls);
+  }
+
+  private rebuildFormArray(rows: Record<string, any>[]): FormArray {
+    const existing = this.group.get(this.field.name);
+    const formArray = new FormArray(
+      rows.map(row => this.createRowGroup(row)),
+      existing?.validator ?? null,
+      existing?.asyncValidator ?? null
+    );
+    if (existing?.disabled) {
+      formArray.disable({ emitEvent: false });
+    }
+    if (existing?.dirty) {
+      formArray.markAsDirty({ onlySelf: true });
+    }
+    if (existing?.touched) {
+      formArray.markAsTouched({ onlySelf: true });
+    }
+    this.group.setControl(this.field.name, formArray, { emitEvent: false });
+    return formArray;
   }
 
   // --- Column Management Methods (for Form Builder mode) ---

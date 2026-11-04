@@ -10,6 +10,7 @@
   <div class="spacer" style="flex: 1;"></div>
 
   <div class="nav-links" *ngIf="authService.currentUser()">
+    <button class = "api-docs" (click)="getApiDocs()"  title="api-docs"><mat-icon>api</mat-icon></button>
     <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
   </div>
 

@@ -18,4 +18,9 @@ export class FormService {
   unassignUser(payload: { formId: string; userId?: string; email?: string }){
     return this.http.post(`${this.baseUrl}/forms/unassign-user`, payload);
   }
-}
+
+  modifyFormVisibility(payload:{ formId: string; visibility:string }){
+    return this.http.post(`${this.baseUrl}/forms/formVisibility`, payload);
+
+  }
+}

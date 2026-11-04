@@ -20,7 +20,7 @@ const FormSchema = new mongoose.Schema({
 
   // Legacy field preserved for backward compatibility
   config: { type: Array, default: [] },
-
+  visibility : {type:String, enum:['Public','Private','Protected']},
   publishedAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

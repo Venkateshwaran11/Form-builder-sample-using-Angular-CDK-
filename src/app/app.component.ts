@@ -16,6 +16,7 @@ import { NavbarComponent } from "./shared/views/navbar/navbar.component";
 export class AppComponent {
   private router = inject(Router);
   public isViewerMode = false;
+  public isSwaggerPage = false;
   public showNavbar = true;
   loginSuccess = false;
 
@@ -25,6 +26,7 @@ export class AppComponent {
     ).subscribe((event: any) => {
       const url = event.urlAfterRedirects || '';
       this.isViewerMode = url.startsWith('/f/');
+      this.isSwaggerPage = url === '/api-docs';
       this.showNavbar = !this.isViewerMode && url !== '/' && url !== '';
     });
   }

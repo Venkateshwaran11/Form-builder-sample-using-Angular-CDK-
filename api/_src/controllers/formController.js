@@ -306,8 +306,10 @@ exports.restoreVersion = async (req, res) => {
 
 exports.userAssignment = async (req, res) => {
   try {
-    const { email, role, formId } = req.body;
-
+  const { email, role, formId } = req.body;
+    if (formId==="" || !formId){
+        return res.status(404).json({ error: "Kindly save the form before assigning an user." })
+    }
     const user = await User.findOne({ email: email });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -317,6 +319,17 @@ exports.userAssignment = async (req, res) => {
       if (!form) {
         return res.status(404).json({ error: "Form not found" })
       }
+    const userId = String(req.user.user);
+
+    const hasAccess = form.assignments.some(
+      assignment => String(assignment.userId) === userId
+    );
+
+    if (!hasAccess) {
+      return res.status(403).json({
+        error: "You don't have access to this form."
+      });
+    }
       const existingAssignment = form.assignments.find(item => item.userEmail === email);
       if(existingAssignment){
         if(existingAssignment.role==='owner'){
@@ -392,4 +405,24 @@ exports.unassignUser = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+};
+
+exports.formVisibility = async (req, res) => {
+  const { formId, visibility } = req.body;
+  try {
+    const form = await Form.findById(formId);
+
+    if (!form) {
+      return res.status(404).json({
+        "error": "Form not found"
+      })
+    }
+    form.visibility = visibility
+
+    await form.save();
+    return res.status(200).json({ message: "Form visibility updated" })
+  } catch (error) {
+    res.status(500).json(error)
+  }
+
 };
