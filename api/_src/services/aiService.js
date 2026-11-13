@@ -1,13 +1,12 @@
-
-const Groq = require("groq-sdk");
-const { formSchema } = require("../models/aiFormModel");
+import Groq from "groq-sdk";
+import { formSchema } from "../models/aiFormModel.js";
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
 });
 
 
-async function generateForm(prompt, currentForm) {
+export async function generateForm(prompt, currentForm) {
   const hasExistingForm = currentForm && Array.isArray(currentForm.fields) && currentForm.fields.length > 0;
   const systemPrompt = `
     You are an AI form builder.
@@ -318,5 +317,3 @@ Return the complete form.
     );
   }
 }
-
-module.exports = { generateForm };

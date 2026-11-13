@@ -1,4 +1,4 @@
-const formSchema = {
+export const formSchema = {
     type: "object",
     properties: {
         formName: {
@@ -190,5 +190,3 @@ const formSchema = {
 
     additionalProperties: false
 };
-
-module.exports = { formSchema };
