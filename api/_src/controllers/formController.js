@@ -92,7 +92,7 @@ exports.getAllForms = async (req, res) => {
 // Get form by id
 exports.getFormById = async (req, res) => {
   try {
-    const form = await Form.findById(req.params.id).select("-draftConfig -config");
+    const form = await Form.findById(req.params.id)
     res.json(form);
   } catch (err) {
     res.status(500).json({ error: err.message });
