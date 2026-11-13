@@ -245,16 +245,16 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of rows; let rIdx = index" class="runtime-row" [formGroupName]="rIdx">
+            <tr *ngFor="let row of rows; let rIdx = index; trackBy: trackByRow" class="runtime-row" [formGroupName]="rIdx">
               <td class="td-num">{{ rIdx + 1 }}</td>
               
-              <td *ngFor="let col of field.columns" class="td-input-cell">
+              <td *ngFor="let col of field.columns; trackBy: trackByCol" class="td-input-cell">
                 
                 <!-- Text / Email / Phone / General -->
                 <ng-container *ngIf="col.type === 'text' || col.type === 'email'">
                   <input [type]="col.type === 'email' ? 'email' : 'text'" 
                          [formControlName]="col.name"
-                         (input)="onCellChange()"
+                         (input)="onCellChange(rIdx, col.name)"
                          [placeholder]="col.placeholder || ('Enter ' + col.label)"
                          class="cell-input">
                 </ng-container>
@@ -263,7 +263,7 @@
                 <ng-container *ngIf="col.type === 'number'">
                   <input type="number" 
                          [formControlName]="col.name"
-                         (input)="onCellChange()"
+                         (input)="onCellChange(rIdx, col.name)"
                          [placeholder]="col.placeholder || '0'"
                          class="cell-input">
                 </ng-container>
@@ -274,7 +274,7 @@
                     <span class="curr-sign">{{ getCurrencySymbol(col.currency) }}</span>
                     <input type="number" 
                            [formControlName]="col.name"
-                           (input)="onCellChange()"
+                           (input)="onCellChange(rIdx, col.name)"
                            [placeholder]="col.placeholder || '0.00'"
                            class="cell-input has-prefix">
                   </div>
@@ -284,17 +284,17 @@
                 <ng-container *ngIf="col.type === 'date'">
                   <input type="date" 
                          [formControlName]="col.name"
-                         (input)="onCellChange()"
+                         (input)="onCellChange(rIdx, col.name)"
                          class="cell-input date-input">
                 </ng-container>
 
                 <!-- Dropdown -->
                 <ng-container *ngIf="col.type === 'dropdown'">
                   <select [formControlName]="col.name"
-                          (change)="onCellChange()"
+                          (change)="onCellChange(rIdx, col.name)"
                           class="cell-input select-input">
                     <option value="">Select {{ col.label }}...</option>
-                    <option *ngFor="let opt of col.options" [value]="opt.value">{{ opt.label }}</option>
+                    <option *ngFor="let opt of col.options; trackBy: trackByOpt" [value]="opt.value">{{ opt.label }}</option>
                   </select>
                 </ng-container>
 
@@ -303,7 +303,7 @@
                   <div class="cell-checkbox-wrap">
                     <input type="checkbox" 
                            [formControlName]="col.name"
-                           (change)="onCellChange()"
+                           (change)="onCellChange(rIdx, col.name)"
                            class="cell-checkbox">
                   </div>
                 </ng-container>
@@ -312,7 +312,7 @@
                 <ng-container *ngIf="col.type === 'textarea'">
                   <textarea rows="1" 
                             [formControlName]="col.name"
-                            (input)="onCellChange()"
+                            (input)="onCellChange(rIdx, col.name)"
                             [placeholder]="col.placeholder || ''"
                             class="cell-input textarea-input"></textarea>
                 </ng-container>
