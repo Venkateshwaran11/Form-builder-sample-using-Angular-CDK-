@@ -181,7 +181,7 @@ export class ViewerComponent implements OnInit {
     this.http.get<any[]>(`${this.apiUrl}/forms/publicForms/${this.formId}`).subscribe({
       next: (form:any) => {
         if (form) {
-          this.formConfig = form.config || [];
+          this.formConfig = form.publishedConfig || [];
           this.formName = form.name;
           this.formDisplayName = form.displayName || 'Untitled Form';
         } else {

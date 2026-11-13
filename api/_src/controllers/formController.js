@@ -92,7 +92,7 @@ exports.getAllForms = async (req, res) => {
 // Get form by id
 exports.getFormById = async (req, res) => {
   try {
-    const form = await Form.findById(req.params.id);
+    const form = await Form.findById(req.params.id).select("-draftConfig -config");
     res.json(form);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -417,6 +417,10 @@ exports.formVisibility = async (req, res) => {
         "error": "Form not found"
       })
     }
+    if(form.visibility===visibility){
+      return res.status(200).json({ message: "Form visibility already set to "+visibility })
+    }
+    
     form.visibility = visibility
 
     await form.save();

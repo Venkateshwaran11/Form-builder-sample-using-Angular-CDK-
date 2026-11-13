@@ -49,3 +49,14 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+
+test-rag.js
+dropdown-field.md
+fieldPalette.md
+form-creation.md
+validation.md
+embeddingService.js
+ragIngestionService.js
+textChunker.js
+
