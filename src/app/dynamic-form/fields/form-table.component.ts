@@ -66,9 +66,15 @@ export class FormTableComponent implements OnInit, OnChanges {
 
   initRows() {
     const control = this.group?.get(this.field.name);
+    if (control instanceof FormArray && control.length === this.rows.length && this.rows.length > 0) {
+      return;
+    }
     const ctrlVal = control instanceof FormArray ? control.getRawValue() : control?.value;
     if (Array.isArray(ctrlVal) && ctrlVal.length > 0) {
-      this.rows = ctrlVal.map(r => ({ ...r }));
+      this.rows = ctrlVal.map((r, i) => ({
+        _rowId: r?._rowId || `row_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`,
+        ...r
+      }));
     } else if (!this.rows.length) {
       this.rows = [];
     }
@@ -76,7 +82,9 @@ export class FormTableComponent implements OnInit, OnChanges {
   }
 
   createEmptyRow(): any {
-    const row: any = {};
+    const row: any = {
+      _rowId: `row_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+    };
     if (this.field.columns) {
       for (const col of this.field.columns) {
         row[col.name] = col.defaultValue !== undefined ? col.defaultValue : (col.type === 'checkbox' ? false : '');
@@ -86,27 +94,51 @@ export class FormTableComponent implements OnInit, OnChanges {
   }
 
   addRow() {
-    this.rows.push(this.createEmptyRow());
-    this.syncControlValue(true);
+    const newRow = this.createEmptyRow();
+    this.rows.push(newRow);
+    const formArray = this.getTableFormArray();
+    if (formArray) {
+      formArray.push(this.createRowGroup(newRow));
+      formArray.markAsDirty();
+      formArray.markAsTouched();
+    } else {
+      this.syncControlValue(true);
+    }
   }
 
   removeRow(index: number) {
     if (index >= 0 && index < this.rows.length) {
       this.rows.splice(index, 1);
-      this.syncControlValue(true);
+      const formArray = this.getTableFormArray();
+      if (formArray && formArray.length > index) {
+        formArray.removeAt(index);
+        formArray.markAsDirty();
+        formArray.markAsTouched();
+      } else {
+        this.syncControlValue(true);
+      }
     }
   }
 
   clearRows() {
     this.rows = [];
-    this.syncControlValue(true);
+    const formArray = this.getTableFormArray();
+    if (formArray) {
+      formArray.clear();
+      formArray.markAsDirty();
+      formArray.markAsTouched();
+    } else {
+      this.syncControlValue(true);
+    }
   }
 
-  onCellChange() {
+  onCellChange(rowIndex?: number, colName?: string) {
     const formArray = this.getTableFormArray();
     if (!formArray) return;
-    this.rows = formArray.getRawValue();
     formArray.markAsDirty();
+    if (rowIndex !== undefined && colName && this.rows[rowIndex]) {
+      this.rows[rowIndex][colName] = formArray.at(rowIndex)?.get(colName)?.value;
+    }
   }
 
   syncControlValue(touch = false) {
@@ -128,6 +160,18 @@ export class FormTableComponent implements OnInit, OnChanges {
   isCellInvalid(rowIndex: number, columnName: string): boolean {
     const control = this.getCellControl(rowIndex, columnName);
     return !!control?.invalid && !!control.touched;
+  }
+
+  trackByRow(index: number, row: any): any {
+    return row?._rowId || index;
+  }
+
+  trackByCol(index: number, col: TableColumnConfig): string {
+    return col?.name || col?.id || String(index);
+  }
+
+  trackByOpt(index: number, opt: any): any {
+    return opt?.value ?? index;
   }
 
   private createRowGroup(row: Record<string, any>): FormGroup {
