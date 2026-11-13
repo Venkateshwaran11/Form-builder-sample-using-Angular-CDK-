@@ -136,6 +136,14 @@ export class FormAccessControlComponent implements OnInit {
   }
 
   updateVisibility(value: FormVisibility) {
+    if(!this.formId){
+        this.snackbar.error('Kindy save your form to continue');
+        return;     
+    }
+    if(value===this.visiblity()){
+      this.snackbar.error('Choose another option')
+      return
+    }
     this.visiblity.set(value)
     this.isLoading.set(true);
     this.loadingMessage.set("Updating Form Visibility...")
